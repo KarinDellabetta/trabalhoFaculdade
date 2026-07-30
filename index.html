@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - TeamPulse</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .cartao-login {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .cartao-login h1 {
+            color: #1a73e8;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .cartao-login p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #1557b0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cartao-login">
+        <h1>TeamPulse 💙</h1>
+        <p>Faça login para continuar</p>
+        
+        <input type="text" id="campoUsuario" placeholder="Usuário (ex: admin ou func)">
+        <input type="password" id="campoSenha" placeholder="Senha">
+        
+        <button onclick="fazerLogin()">Entrar</button>
+    </div>
+
+    <script>
+        // Inicializa dados padrão caso o localStorage esteja vazio
+        function inicializarDados() {
+            if (!localStorage.getItem('tp_usuarios')) {
+                const usuariosIniciais = [
+                    { nome: "Administrador", usuario: "admin", senha: "123", perfil: "admin" },
+                    { nome: "Colaborador Teste", usuario: "func", senha: "123", perfil: "func" }
+                ];
+                localStorage.setItem('tp_usuarios', JSON.stringify(usuariosIniciais));
+            }
+
+            if (!localStorage.getItem('tp_atividades')) {
+                const atividadesIniciais = ["Lanche", "Reunião de Alinhamento", "Treinamento de Segurança"];
+                localStorage.setItem('tp_atividades', JSON.stringify(atividadesIniciais));
+            }
+
+            if (!localStorage.getItem('tp_humores')) {
+                const humoresIniciais = [
+                    { emoji: "🤩", texto: "Excelente" },
+                    { emoji: "😁", texto: "Muito bem" },
+                    { emoji: "🙂", texto: "Bem" },
+                    { emoji: "🙁", texto: "Não estou bem" },
+                    { emoji: "😫", texto: "Mal" }
+                ];
+                localStorage.setItem('tp_humores', JSON.stringify(humoresIniciais));
+            }
+        }
+
+        function fazerLogin() {
+            const usr = document.getElementById('campoUsuario').value.trim();
+            const pwd = document.getElementById('campoSenha').value.trim();
+
+            const usuarios = JSON.parse(localStorage.getItem('tp_usuarios')) || [];
+            const usuarioEncontrado = usuarios.find(u => u.usuario === usr && u.senha === pwd);
+
+            if (usuarioEncontrado) {
+                localStorage.setItem('tp_usuarioLogado', JSON.stringify(usuarioEncontrado));
+                if (usuarioEncontrado.perfil === 'admin') {
+                    window.location.href = 'admin.html';
+                } else {
+                    window.location.href = 'colaborador.html';
+                }
+            } else {
+                alert('Usuário ou senha inválidos!');
+            }
+        }
+
+        inicializarDados();
+    </script>
+</body>
+</html>
