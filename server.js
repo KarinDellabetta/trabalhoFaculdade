@@ -51,7 +51,7 @@ const AtividadeLogSchema = new mongoose.Schema({
 }, { timestamps: true });
 const AtividadeLog = mongoose.models.AtividadeLog || mongoose.model('AtividadeLog', AtividadeLogSchema);
 
-// Conexão com o MongoDB Atlas
+// --- CONEXÃO COM O MONGODB ---
 const mongoURI = 'mongodb+srv://bettaleuck_db_user:JNFwTEB5SSz40Dvj@projetofaculdade.ofrlixt.mongodb.net/teampulse?appName=ProjetoFaculdade';
 
 mongoose.connect(mongoURI)
@@ -141,17 +141,15 @@ app.delete('/api/usuarios/:id', async (req, res) => {
     try { await Usuario.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro' }); }
 });
 
-// --- ROTAS DE PERGUNTAS E RESPOSTAS ---
+// --- ROTAS DE PERGUNTAS (ADMIN) ---
 app.get('/api/perguntas', async (req, res) => {
     try { res.json(await Pergunta.find()); } catch (e) { res.status(500).json({ erro: 'Erro' }); }
 });
-
 app.post('/api/perguntas', async (req, res) => {
     try {
         const total = await Pergunta.countDocuments();
-        if (total >= 4) {
-            return res.status(400).json({ erro: 'Limite máximo de 4 perguntas atingido!' });
-        }
+        if (total >= 4) return res.status(400).json({ erro: 'Limite máximo de 4 perguntas atingido!' });
+        
         const { titulo, opcoes, ativa } = req.body;
         if (!opcoes || opcoes.length === 0 || opcoes.length > 5) {
             return res.status(400).json({ erro: 'Cada pergunta deve ter entre 1 e 5 respostas.' });
@@ -161,7 +159,6 @@ app.post('/api/perguntas', async (req, res) => {
         res.status(201).json(nova);
     } catch (e) { res.status(400).json({ erro: 'Erro ao cadastrar pergunta' }); }
 });
-
 app.put('/api/perguntas/:id', async (req, res) => {
     try {
         const { titulo, opcoes, ativa } = req.body;
@@ -172,9 +169,46 @@ app.put('/api/perguntas/:id', async (req, res) => {
         res.json(atualizada);
     } catch (e) { res.status(400).json({ erro: 'Erro ao atualizar pergunta' }); }
 });
-
 app.delete('/api/perguntas/:id', async (req, res) => {
     try { await Pergunta.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro' }); }
+});
+
+// --- ROTA PARA RESPONDER PERGUNTAS (COLABORADOR) ---
+app.post('/api/responder-pergunta', async (req, res) => {
+    try {
+        const { usuarioId, perguntaId, opcaoId, comentario } = req.body;
+
+        if (!usuarioId || !perguntaId || !opcaoId) {
+            return res.status(400).json({ erro: 'Dados incompletos para registrar a resposta.' });
+        }
+
+        // Definir o início e o fim do dia atual (00:00:00 até 23:59:59)
+        const hojeInicio = new Date();
+        hojeInicio.setHours(0, 0, 0, 0);
+        
+        const hojeFim = new Date();
+        hojeFim.setHours(23, 59, 59, 999);
+
+        // Busca se já existe resposta do colaborador para essa pergunta HOJE
+        const jaRespondeuHoje = await HumorLog.findOne({
+            usuarioId: usuarioId,
+            perguntaId: perguntaId,
+            createdAt: { $gte: hojeInicio, $lte: hojeFim }
+        });
+
+        if (jaRespondeuHoje) {
+            // Se já respondeu hoje, bloqueia e retorna erro 403
+            return res.status(403).json({ erro: 'Você já respondeu a esta pergunta hoje. Volte amanhã!' });
+        }
+
+        // Se não respondeu, salva normalmente
+        const novaResposta = new HumorLog({ usuarioId, perguntaId, opcaoId, comentario });
+        await novaResposta.save();
+        
+        res.status(201).json({ mensagem: 'Resposta registrada com sucesso!', log: novaResposta });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao registrar a resposta.' });
+    }
 });
 
 // --- ROTAS DE ATIVIDADES ---
@@ -190,6 +224,21 @@ app.put('/api/atividades/:id', async (req, res) => {
 app.delete('/api/atividades/:id', async (req, res) => {
     try { await Atividade.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro' }); }
 });
+
+// --- ROTAS PARA SALVAR LOG DE ATIVIDADE CONCLUÍDA ---
+app.post('/api/registrar-atividade', async (req, res) => {
+    try {
+        const { usuarioId, atividadeId } = req.body;
+        if (!usuarioId || !atividadeId) return res.status(400).json({ erro: 'Dados incompletos' });
+        
+        const novoLog = new AtividadeLog({ usuarioId, atividadeId });
+        await novoLog.save();
+        res.status(201).json({ mensagem: 'Atividade registrada!', log: novoLog });
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao registrar atividade' });
+    }
+});
+
 
 // --- RELATÓRIOS ---
 app.post('/api/relatorios/perguntas', async (req, res) => {
