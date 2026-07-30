@@ -5,160 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeamPulse - Painel Administrativo</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: #f4f7f6;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-        aside {
-            width: 260px;
-            background: #2c3e50;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-        }
-        aside h2 {
-            font-size: 22px;
-            margin-bottom: 30px;
-            text-align: center;
-            color: #ecf0f1;
-        }
-        .menu-items {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .menu-btn {
-            background: transparent;
-            color: #bdc3c7;
-            border: none;
-            padding: 12px 15px;
-            text-align: left;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .menu-btn:hover, .menu-btn.active {
-            background: #34495e;
-            color: white;
-        }
-        .logout-btn {
-            background: #c0392b;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-        }
-        .logout-btn:hover {
-            background: #e74c3c;
-        }
-        main {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
-        .section {
-            display: none;
-        }
-        .section.active {
-            display: block;
-        }
-        h3 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-            font-size: 24px;
-        }
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 15px;
-        }
-        button.btn-primary {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        button.btn-primary:hover {
-            background: #219653;
-        }
-        .btn-warning {
-            background: #f39c12;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .btn-warning:hover {
-            background: #d68910;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        th, td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        th {
-            background: #f8f9fa;
-            color: #333;
-        }
-        .btn-delete {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .filter-row {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-            margin-bottom: 15px;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #eef6fc; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Tema Azul Claro para o Admin */
+        aside { width: 270px; background: #e3f2fd; color: #0d47a1; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; border-right: 1px solid #bbdefb; }
+        aside h2 { font-size: 22px; margin-bottom: 30px; text-align: center; color: #1565c0; font-weight: bold; }
+        
+        .menu-items { display: flex; flex-direction: column; gap: 8px; }
+        .menu-btn { background: transparent; color: #1565c0; border: none; padding: 12px 15px; text-align: left; font-size: 15px; font-weight: 500; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .menu-btn:hover { background: #d0e8fc; color: #0d47a1; }
+        .menu-btn.active { background: #90caf9; color: #0d47a1; font-weight: bold; }
+        
+        .logout-btn { background: #ef9a9a; color: #b71c1c; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .logout-btn:hover { background: #e57373; color: white; }
+        
+        main { flex: 1; padding: 40px; overflow-y: auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+        h3 { margin-bottom: 20px; color: #0d47a1; font-size: 24px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(3, 169, 244, 0.08); margin-bottom: 20px; border: 1px solid #e1f5fe; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #37474f; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #b0bec5; border-radius: 6px; font-size: 15px; background: #fafafa; }
+        input:focus, select:focus { outline: none; border-color: #03a9f4; background: white; }
+        
+        button.btn-primary { background: #0288d1; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button.btn-primary:hover { background: #0277bd; }
+        .btn-warning { background: #ffa726; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+        .btn-warning:hover { background: #fb8c00; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #f1f1f1; }
+        th { background: #f1f8ff; color: #37474f; font-weight: 600; }
+        .btn-delete { background: #e57373; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+        .btn-delete:hover { background: #d32f2f; }
+        .filter-row { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -168,10 +50,10 @@
             <h2>TeamPulse Admin</h2>
             <div class="menu-items">
                 <button class="menu-btn active" onclick="mudarAba('usuarios', this)">👥 Usuários & Senhas</button>
-                <button class="menu-btn" onclick="mudarAba('perguntas', this)">❓ Perguntas</button>
-                <button class="menu-btn" onclick="mudarAba('humores', this)">😊 Respostas / Humores</button>
+                <button class="menu-btn" onclick="mudarAba('perguntas', this)">❓ Perguntas & Respostas</button>
                 <button class="menu-btn" onclick="mudarAba('atividades', this)">📋 Atividades</button>
-                <button class="menu-btn" onclick="mudarAba('relatorios', this)">📊 Relatórios</button>
+                <button class="menu-btn" onclick="mudarAba('relatorio-perguntas', this)">📊 Relatório de Perguntas</button>
+                <button class="menu-btn" onclick="mudarAba('relatorio-atividades', this)">📈 Relatório de Atividades</button>
             </div>
         </div>
         <button class="logout-btn" onclick="fazerLogout()">Sair do Sistema</button>
@@ -180,7 +62,7 @@
     <main>
         <!-- ABA: USUÁRIOS & SENHAS -->
         <section id="usuarios" class="section active">
-            <h3>Gerenciamento de Usuários & Redefinição de Senhas</h3>
+            <h3>Gerenciamento de Usuários & Senhas</h3>
             <div class="card">
                 <h4 id="tituloFormUsuario">Cadastrar Novo Usuário</h4>
                 <form id="formCadUsuario" onsubmit="salvarUsuario(event)" style="margin-top: 15px;">
@@ -194,7 +76,7 @@
                         <input type="email" id="admEmail" required>
                     </div>
                     <div class="input-group">
-                        <label>Senha <span id="labelSenhaInfo" style="font-weight:normal; font-size:12px; color:#888;">(Deixe em branco para não alterar ao editar)</span></label>
+                        <label>Senha <span style="font-weight:normal; font-size:12px; color:#78909c;">(Deixe em branco para não alterar ao editar)</span></label>
                         <input type="password" id="admSenha">
                     </div>
                     <div class="input-group">
@@ -205,7 +87,7 @@
                         </select>
                     </div>
                     <button type="submit" class="btn-primary" id="btnSalvarUsuario">Criar Usuário</button>
-                    <button type="button" id="btnCancelarEdicao" style="display:none; background:#7f8c8d; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoUsuario()">Cancelar</button>
+                    <button type="button" id="btnCancelarEdicao" style="display:none; background:#b0bec5; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoUsuario()">Cancelar</button>
                 </form>
             </div>
 
@@ -213,28 +95,23 @@
                 <h4>Lista de Usuários</h4>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>E-mail</th>
-                            <th>Tipo</th>
-                            <th>Ações</th>
-                        </tr>
+                        <tr><th>Nome</th><th>E-mail</th><th>Tipo</th><th>Ações</th></tr>
                     </thead>
                     <tbody id="tabelaUsuarios"></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- ABA: PERGUNTAS -->
+        <!-- ABA: PERGUNTAS & RESPOSTAS -->
         <section id="perguntas" class="section">
-            <h3>Gerenciamento de Perguntas</h3>
+            <h3>Gerenciamento de Perguntas e Respostas (Máx. 4 perguntas, Máx. 5 respostas cada)</h3>
             <div class="card">
-                <h4 id="tituloFormPergunta">Adicionar ou Editar Pergunta</h4>
+                <h4 id="tituloFormPergunta">Cadastrar Pergunta e Respostas</h4>
                 <form id="formCadPergunta" onsubmit="salvarPergunta(event)" style="margin-top: 15px;">
                     <input type="hidden" id="perguntaEditId">
                     <div class="input-group">
                         <label>Título da Pergunta</label>
-                        <input type="text" id="pergTitulo" placeholder="Ex: Como você avalia sua semana?" required>
+                        <input type="text" id="pergTitulo" placeholder="Ex: Como você está se sentindo em relação ao seu trabalho hoje?" required>
                     </div>
                     <div class="input-group">
                         <label>Status</label>
@@ -243,8 +120,16 @@
                             <option value="false">Inativa</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn-primary" id="btnSalvarPergunta">Salvar Pergunta</button>
-                    <button type="button" id="btnCancelarEdicaoPergunta" style="display:none; background:#7f8c8d; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoPergunta()">Cancelar</button>
+
+                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #e0e0e0;">
+                    <label><b>Respostas (De 1 a 5 opções. Emojis são opcionais)</b></label>
+                    <div id="containerOpcoes" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"></div>
+                    <button type="button" class="btn-warning" onclick="adicionarCampoOpcao()" id="btnAdicionarOpcao">+ Adicionar Resposta</button>
+                    
+                    <div style="margin-top: 20px;">
+                        <button type="submit" class="btn-primary" id="btnSalvarPergunta">Salvar Pergunta</button>
+                        <button type="button" id="btnCancelarEdicaoPergunta" style="display:none; background:#b0bec5; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoPergunta()">Cancelar</button>
+                    </div>
                 </form>
             </div>
 
@@ -252,53 +137,9 @@
                 <h4>Perguntas Cadastradas</h4>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
+                        <tr><th>Pergunta e Respostas</th><th>Status</th><th>Ações</th></tr>
                     </thead>
                     <tbody id="tabelaPerguntas"></tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- ABA: RESPOSTAS / HUMORES (Máx 5) -->
-        <section id="humores" class="section">
-            <h3>Gerenciamento de Respostas / Opções de Humor (Máximo 5)</h3>
-            <div class="card">
-                <h4 id="tituloFormHumor">Adicionar Opção de Humor/Resposta</h4>
-                <form id="formCadHumor" onsubmit="salvarHumor(event)" style="margin-top: 15px;">
-                    <input type="hidden" id="humorEditId">
-                    <div class="input-group">
-                        <label>Título / Descrição (Ex: Muito Bem, Produtivo...)</label>
-                        <input type="text" id="humorTitulo" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Emoji</label>
-                        <input type="text" id="humorEmoji" placeholder="😊" required maxlength="5">
-                    </div>
-                    <div class="input-group">
-                        <label>Valor Numérico (Ex: 1 a 5)</label>
-                        <input type="number" id="humorValor" required>
-                    </div>
-                    <button type="submit" class="btn-primary" id="btnSalvarHumor">Salvar Resposta</button>
-                    <button type="button" id="btnCancelarEdicaoHumor" style="display:none; background:#7f8c8d; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoHumor()">Cancelar</button>
-                </form>
-            </div>
-
-            <div class="card">
-                <h4>Opções Cadastradas</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Emoji</th>
-                            <th>Título</th>
-                            <th>Valor</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaHumores"></tbody>
                 </table>
             </div>
         </section>
@@ -312,10 +153,10 @@
                     <input type="hidden" id="atividadeEditId">
                     <div class="input-group">
                         <label>Descrição da Atividade</label>
-                        <input type="text" id="atvDescricao" placeholder="Ex: Lanche, Reunião, Projeto..." required>
+                        <input type="text" id="atvDescricao" placeholder="Ex: Lanche, Reunião de alinhamento..." required>
                     </div>
                     <button type="submit" class="btn-primary" id="btnSalvarAtividade">Adicionar Atividade</button>
-                    <button type="button" id="btnCancelarEdicaoAtividade" style="display:none; background:#7f8c8d; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoAtividade()">Cancelar</button>
+                    <button type="button" id="btnCancelarEdicaoAtividade" style="display:none; background:#b0bec5; color:white; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoAtividade()">Cancelar</button>
                 </form>
             </div>
 
@@ -323,63 +164,82 @@
                 <h4>Atividades Registradas</h4>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Descrição</th>
-                            <th>Status</th>
-                            <th>Ações</th>
-                        </tr>
+                        <tr><th>Descrição</th><th>Status</th><th>Ações</th></tr>
                     </thead>
                     <tbody id="tabelaAtividades"></tbody>
                 </table>
             </div>
         </section>
 
-        <!-- ABA: RELATÓRIOS COM FILTROS -->
-        <section id="relatorios" class="section">
-            <h3>Relatórios Avançados</h3>
+        <!-- ABA: RELATÓRIO DE PERGUNTAS -->
+        <section id="relatorio-perguntas" class="section">
+            <h3>Relatório de Perguntas</h3>
             <div class="card">
-                <h4>Filtros de Relatório</h4>
+                <h4>Filtros</h4>
                 <div class="filter-row" style="flex-wrap: wrap;">
-                    <div class="input-group" style="flex: 1; min-width: 200px;">
-                        <label>Tipo de Relatório</label>
-                        <select id="filtroTipo" onchange="atualizarOpcoesFiltroItem()">
-                            <option value="respostas">Respostas de Perguntas</option>
-                            <option value="tempo_atividade">Tempo de Pausa / Atividade</option>
-                        </select>
-                    </div>
-                    <div class="input-group" style="flex: 1; min-width: 200px;">
-                        <label id="labelFiltroItem">Filtrar por Pergunta</label>
-                        <select id="filtroItemId">
-                            <option value="">Todas</option>
-                        </select>
+                    <div class="input-group" style="flex: 1; min-width: 250px;">
+                        <label>Filtrar por Pergunta</label>
+                        <select id="filtroPerguntaId"><option value="">Todas</option></select>
                     </div>
                     <div class="input-group" style="flex: 1; min-width: 150px;">
                         <label>Data Início</label>
-                        <input type="date" id="filtroDataInicio">
+                        <input type="date" id="filtroPergDataInicio">
                     </div>
                     <div class="input-group" style="flex: 1; min-width: 150px;">
                         <label>Data Fim</label>
-                        <input type="date" id="filtroDataFim">
+                        <input type="date" id="filtroPergDataFim">
                     </div>
                     <div class="input-group" style="margin-bottom: 15px;">
-                        <button type="button" class="btn-primary" onclick="gerarRelatorioFiltrado()">Gerar Relatório</button>
+                        <button type="button" class="btn-primary" onclick="gerarRelatorioPerguntas()">Gerar Relatório</button>
                     </div>
                 </div>
             </div>
 
             <div class="card">
-                <h4>Resultado do Relatório</h4>
+                <h4>Resultados</h4>
                 <table>
                     <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Colaborador</th>
-                            <th>Item / Pergunta ou Atividade</th>
-                            <th>Detalhes / Resposta</th>
-                        </tr>
+                        <tr><th>Data</th><th>Colaborador</th><th>Pergunta</th><th>Detalhes</th></tr>
                     </thead>
-                    <tbody id="tabelaRelatorios">
+                    <tbody id="tabelaRelatorioPerguntas">
                         <tr><td colspan="4" style="text-align:center;">Selecione os filtros e clique em Gerar Relatório.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ABA: RELATÓRIO DE ATIVIDADES -->
+        <section id="relatorio-atividades" class="section">
+            <h3>Relatório de Atividades</h3>
+            <div class="card">
+                <h4>Filtros</h4>
+                <div class="filter-row" style="flex-wrap: wrap;">
+                    <div class="input-group" style="flex: 1; min-width: 250px;">
+                        <label>Filtrar por Atividade</label>
+                        <select id="filtroAtivId"><option value="">Todas</option></select>
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Data Início</label>
+                        <input type="date" id="filtroAtivDataInicio">
+                    </div>
+                    <div class="input-group" style="flex: 1; min-width: 150px;">
+                        <label>Data Fim</label>
+                        <input type="date" id="filtroAtivDataFim">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <button type="button" class="btn-primary" onclick="gerarRelatorioAtividades()">Gerar Relatório</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>Resultados</h4>
+                <table>
+                    <thead>
+                        <tr><th>Data</th><th>Colaborador</th><th>Atividade</th></tr>
+                    </thead>
+                    <tbody id="tabelaRelatorioAtividades">
+                        <tr><td colspan="3" style="text-align:center;">Selecione os filtros e clique em Gerar Relatório.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -390,15 +250,17 @@
         const API_URL = 'http://localhost:3000/api';
         let listaPerguntasCache = [];
         let listaAtividadesCache = [];
+        let opcoesAtuais = [{ texto: '', emoji: '', valor: 1 }];
 
         window.onload = function() {
             const user = JSON.parse(localStorage.getItem('usuarioLogado'));
             if (!user || user.tipo !== 'admin') {
-                alert('Acesso negado. Faça login como administrador.');
+                alert('Acesso negado.');
                 window.location.href = 'index.html';
                 return;
             }
             carregarDadosGerais();
+            renderizarOpcoesForm(opcoesAtuais);
         };
 
         function mudarAba(idSecao, elemento) {
@@ -417,11 +279,38 @@
         async function carregarDadosGerais() {
             carregarUsuarios();
             carregarPerguntas();
-            carregarHumores();
             carregarAtividades();
         }
 
-        // --- USUÁRIOS ---
+        function renderizarOpcoesForm(opcoes) {
+            opcoesAtuais = opcoes;
+            const container = document.getElementById('containerOpcoes');
+            container.innerHTML = opcoesAtuais.map((op, index) => `
+                <div style="display: flex; gap: 10px; align-items: center; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0;">
+                    <span style="font-weight: bold; min-width: 25px;">#${index + 1}</span>
+                    <input type="text" placeholder="Texto da resposta (Ex: Excelente)" value="${op.texto || ''}" oninput="opcoesAtuais[${index}].texto = this.value" required style="flex: 2;">
+                    <input type="text" placeholder="Emoji opcional (Ex: 🤩)" value="${op.emoji || ''}" oninput="opcoesAtuais[${index}].emoji = this.value" style="flex: 1;" maxlength="5">
+                    <input type="number" placeholder="Valor" value="${op.valor !== undefined ? op.valor : index + 1}" oninput="opcoesAtuais[${index}].valor = Number(this.value)" style="width: 80px;" required>
+                    ${opcoesAtuais.length > 1 ? `<button type="button" class="btn-delete" onclick="removerCampoOpcao(${index})">X</button>` : ''}
+                </div>
+            `).join('');
+            document.getElementById('btnAdicionarOpcao').style.display = opcoesAtuais.length >= 5 ? 'none' : 'inline-block';
+        }
+
+        function adicionarCampoOpcao() {
+            if (opcoesAtuais.length < 5) {
+                opcoesAtuais.push({ texto: '', emoji: '', valor: opcoesAtuais.length + 1 });
+                renderizarOpcoesForm(opcoesAtuais);
+            }
+        }
+
+        function removerCampoOpcao(index) {
+            if (opcoesAtuais.length > 1) {
+                opcoesAtuais.splice(index, 1);
+                renderizarOpcoesForm(opcoesAtuais);
+            }
+        }
+
         async function carregarUsuarios() {
             const res = await fetch(`${API_URL}/usuarios`);
             const usuarios = await res.json();
@@ -441,28 +330,19 @@
         async function salvarUsuario(e) {
             e.preventDefault();
             const id = document.getElementById('usuarioEditId').value;
-            const nome = document.getElementById('admNome').value;
-            const email = document.getElementById('admEmail').value;
-            const senha = document.getElementById('admSenha').value;
-            const tipo = document.getElementById('admTipo').value;
-
-            const url = id ? `${API_URL}/usuarios/${id}` : `${API_URL}/usuarios`;
-            const method = id ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
+            const body = {
+                nome: document.getElementById('admNome').value,
+                email: document.getElementById('admEmail').value,
+                senha: document.getElementById('admSenha').value,
+                tipo: document.getElementById('admTipo').value
+            };
+            const res = await fetch(id ? `${API_URL}/usuarios/${id}` : `${API_URL}/usuarios`, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, email, senha, tipo })
+                body: JSON.stringify(body)
             });
-
-            if (res.ok) {
-                alert(id ? 'Usuário atualizado com sucesso!' : 'Usuário criado com sucesso!');
-                cancelarEdicaoUsuario();
-                carregarUsuarios();
-            } else {
-                const err = await res.json();
-                alert('Erro: ' + (err.erro || 'Erro ao salvar'));
-            }
+            if (res.ok) { alert('Usuário salvo com sucesso!'); cancelarEdicaoUsuario(); carregarUsuarios(); }
+            else { alert('Erro ao salvar usuário.'); }
         }
 
         function prepararEdicaoUsuario(id, nome, email, tipo) {
@@ -485,27 +365,26 @@
         }
 
         async function deletarUsuario(id) {
-            if (confirm('Deseja excluir este usuário?')) {
-                await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
-                carregarUsuarios();
-            }
+            if (confirm('Excluir usuário?')) { await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' }); carregarUsuarios(); }
         }
 
-        // --- PERGUNTAS ---
         async function carregarPerguntas() {
             const res = await fetch(`${API_URL}/perguntas`);
             listaPerguntasCache = await res.json();
             document.getElementById('tabelaPerguntas').innerHTML = listaPerguntasCache.map(p => `
                 <tr>
-                    <td>${p.titulo}</td>
+                    <td>
+                        <b>${p.titulo}</b><br>
+                        <small style="color: #607d8b;">Respostas: ${p.opcoes.map(o => `${o.emoji ? o.emoji + ' ' : ''}${o.texto} (Valor: ${o.valor})`).join(' | ')}</small>
+                    </td>
                     <td>${p.ativa ? 'Ativa' : 'Inativa'}</td>
                     <td>
-                        <button class="btn-warning" onclick="prepararEdicaoPergunta('${p._id}', '${p.titulo}', ${p.ativa})">Editar</button>
+                        <button class="btn-warning" onclick="prepararEdicaoPergunta('${p._id}')">Editar</button>
                         <button class="btn-delete" onclick="deletarPergunta('${p._id}')">Excluir</button>
                     </td>
                 </tr>
             `).join('');
-            atualizarOpcoesFiltroItem();
+            atualizarOpcoesFiltroPerguntas();
         }
 
         async function salvarPergunta(e) {
@@ -514,13 +393,11 @@
             const titulo = document.getElementById('pergTitulo').value;
             const ativa = document.getElementById('pergAtiva').value === 'true';
 
-            const url = id ? `${API_URL}/perguntas/${id}` : `${API_URL}/perguntas`;
-            const method = id ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
+            const body = { titulo, opcoes: opcoesAtuais, ativa };
+            const res = await fetch(id ? `${API_URL}/perguntas/${id}` : `${API_URL}/perguntas`, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, ativa })
+                body: JSON.stringify(body)
             });
 
             if (res.ok) {
@@ -528,15 +405,19 @@
                 cancelarEdicaoPergunta();
                 carregarPerguntas();
             } else {
-                alert('Erro ao salvar pergunta.');
+                const err = await res.json();
+                alert('Erro: ' + (err.erro || 'Erro ao salvar'));
             }
         }
 
-        function prepararEdicaoPergunta(id, titulo, ativa) {
-            document.getElementById('perguntaEditId').value = id;
-            document.getElementById('pergTitulo').value = titulo;
-            document.getElementById('pergAtiva').value = ativa ? 'true' : 'false';
-            document.getElementById('tituloFormPergunta').innerText = 'Editar Pergunta';
+        function prepararEdicaoPergunta(id) {
+            const p = listaPerguntasCache.find(item => item._id === id);
+            if (!p) return;
+            document.getElementById('perguntaEditId').value = p._id;
+            document.getElementById('pergTitulo').value = p.titulo;
+            document.getElementById('pergAtiva').value = p.ativa ? 'true' : 'false';
+            renderizarOpcoesForm(JSON.parse(JSON.stringify(p.opcoes)));
+            document.getElementById('tituloFormPergunta').innerText = 'Editar Pergunta e Respostas';
             document.getElementById('btnSalvarPergunta').innerText = 'Salvar Alterações';
             document.getElementById('btnCancelarEdicaoPergunta').style.display = 'inline-block';
         }
@@ -544,87 +425,17 @@
         function cancelarEdicaoPergunta() {
             document.getElementById('perguntaEditId').value = '';
             document.getElementById('formCadPergunta').reset();
-            document.getElementById('tituloFormPergunta').innerText = 'Adicionar ou Editar Pergunta';
+            opcoesAtuais = [{ texto: '', emoji: '', valor: 1 }];
+            renderizarOpcoesForm(opcoesAtuais);
+            document.getElementById('tituloFormPergunta').innerText = 'Cadastrar Pergunta e Respostas';
             document.getElementById('btnSalvarPergunta').innerText = 'Salvar Pergunta';
             document.getElementById('btnCancelarEdicaoPergunta').style.display = 'none';
         }
 
         async function deletarPergunta(id) {
-            if (confirm('Excluir pergunta?')) {
-                await fetch(`${API_URL}/perguntas/${id}`, { method: 'DELETE' });
-                carregarPerguntas();
-            }
+            if (confirm('Excluir pergunta?')) { await fetch(`${API_URL}/perguntas/${id}`, { method: 'DELETE' }); carregarPerguntas(); }
         }
 
-        // --- HUMORES / RESPOSTAS ---
-        async function carregarHumores() {
-            const res = await fetch(`${API_URL}/humores`);
-            const humores = await res.json();
-            document.getElementById('tabelaHumores').innerHTML = humores.map(h => `
-                <tr>
-                    <td><span style="font-size: 20px;">${h.emoji}</span></td>
-                    <td>${h.titulo}</td>
-                    <td>${h.valor}</td>
-                    <td>
-                        <button class="btn-warning" onclick="prepararEdicaoHumor('${h._id}', '${h.titulo}', '${h.emoji}', ${h.valor})">Editar</button>
-                        <button class="btn-delete" onclick="deletarHumor('${h._id}')">Excluir</button>
-                    </td>
-                </tr>
-            `).join('');
-        }
-
-        async function salvarHumor(e) {
-            e.preventDefault();
-            const id = document.getElementById('humorEditId').value;
-            const titulo = document.getElementById('humorTitulo').value;
-            const emoji = document.getElementById('humorEmoji').value;
-            const valor = Number(document.getElementById('humorValor').value);
-
-            const url = id ? `${API_URL}/humores/${id}` : `${API_URL}/humores`;
-            const method = id ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ titulo, emoji, valor })
-            });
-
-            const resultado = await res.json();
-            if (res.ok) {
-                alert('Resposta/Humor salvo com sucesso!');
-                cancelarEdicaoHumor();
-                carregarHumores();
-            } else {
-                alert('Erro: ' + (resultado.erro || 'Erro ao salvar'));
-            }
-        }
-
-        function prepararEdicaoHumor(id, titulo, emoji, valor) {
-            document.getElementById('humorEditId').value = id;
-            document.getElementById('humorTitulo').value = titulo;
-            document.getElementById('humorEmoji').value = emoji;
-            document.getElementById('humorValor').value = valor;
-            document.getElementById('tituloFormHumor').innerText = 'Editar Resposta/Humor';
-            document.getElementById('btnSalvarHumor').innerText = 'Salvar Alterações';
-            document.getElementById('btnCancelarEdicaoHumor').style.display = 'inline-block';
-        }
-
-        function cancelarEdicaoHumor() {
-            document.getElementById('humorEditId').value = '';
-            document.getElementById('formCadHumor').reset();
-            document.getElementById('tituloFormHumor').innerText = 'Adicionar Opção de Humor/Resposta';
-            document.getElementById('btnSalvarHumor').innerText = 'Salvar Resposta';
-            document.getElementById('btnCancelarEdicaoHumor').style.display = 'none';
-        }
-
-        async function deletarHumor(id) {
-            if (confirm('Excluir esta opção de resposta?')) {
-                await fetch(`${API_URL}/humores/${id}`, { method: 'DELETE' });
-                carregarHumores();
-            }
-        }
-
-        // --- ATIVIDADES ---
         async function carregarAtividades() {
             const res = await fetch(`${API_URL}/atividades`);
             listaAtividadesCache = await res.json();
@@ -638,30 +449,19 @@
                     </td>
                 </tr>
             `).join('');
-            atualizarOpcoesFiltroItem();
+            atualizarOpcoesFiltroAtividades();
         }
 
         async function salvarAtividade(e) {
             e.preventDefault();
             const id = document.getElementById('atividadeEditId').value;
             const descricao = document.getElementById('atvDescricao').value;
-
-            const url = id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`;
-            const method = id ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
+            const res = await fetch(id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ descricao })
             });
-
-            if (res.ok) {
-                alert('Atividade salva com sucesso!');
-                cancelarEdicaoAtividade();
-                carregarAtividades();
-            } else {
-                alert('Erro ao salvar atividade.');
-            }
+            if (res.ok) { alert('Atividade salva!'); cancelarEdicaoAtividade(); carregarAtividades(); }
         }
 
         function prepararEdicaoAtividade(id, descricao) {
@@ -681,77 +481,74 @@
         }
 
         async function deletarAtividade(id) {
-            if (confirm('Excluir atividade?')) {
-                await fetch(`${API_URL}/atividades/${id}`, { method: 'DELETE' });
-                carregarAtividades();
-            }
+            if (confirm('Excluir atividade?')) { await fetch(`${API_URL}/atividades/${id}`, { method: 'DELETE' }); carregarAtividades(); }
         }
 
-        // --- RELATÓRIOS COM FILTROS ---
-        function atualizarOpcoesFiltroItem() {
-            const tipo = document.getElementById('filtroTipo').value;
-            const selectItem = document.getElementById('filtroItemId');
-            const labelItem = document.getElementById('labelFiltroItem');
-
-            selectItem.innerHTML = '<option value="">Todos</option>';
-
-            if (tipo === 'respostas') {
-                labelItem.innerText = 'Filtrar por Pergunta';
-                listaPerguntasCache.forEach(p => {
-                    selectItem.innerHTML += `<option value="${p._id}">${p.titulo}</option>`;
-                });
-            } else {
-                labelItem.innerText = 'Filtrar por Atividade';
-                listaAtividadesCache.forEach(a => {
-                    selectItem.innerHTML += `<option value="${a._id}">${a.descricao}</option>`;
-                });
-            }
+        function atualizarOpcoesFiltroPerguntas() {
+            const selectItem = document.getElementById('filtroPerguntaId');
+            selectItem.innerHTML = '<option value="">Todas</option>';
+            listaPerguntasCache.forEach(p => { selectItem.innerHTML += `<option value="${p._id}">${p.titulo}</option>`; });
         }
 
-        async function gerarRelatorioFiltrado() {
-            const tipoRelatorio = document.getElementById('filtroTipo').value;
-            const itemId = document.getElementById('filtroItemId').value;
-            const dataInicio = document.getElementById('filtroDataInicio').value;
-            const dataFim = document.getElementById('filtroDataFim').value;
+        function atualizarOpcoesFiltroAtividades() {
+            const selectItem = document.getElementById('filtroAtivId');
+            selectItem.innerHTML = '<option value="">Todas</option>';
+            listaAtividadesCache.forEach(a => { selectItem.innerHTML += `<option value="${a._id}">${a.descricao}</option>`; });
+        }
 
-            try {
-                const res = await fetch(`${API_URL}/relatorios/filtrar`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tipoRelatorio, itemId, dataInicio, dataFim })
-                });
+        async function gerarRelatorioPerguntas() {
+            const itemId = document.getElementById('filtroPerguntaId').value;
+            const dataInicio = document.getElementById('filtroPergDataInicio').value;
+            const dataFim = document.getElementById('filtroPergDataFim').value;
 
-                const logs = await res.json();
-                const tbody = document.getElementById('tabelaRelatorios');
+            const res = await fetch(`${API_URL}/relatorios/perguntas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId, dataInicio, dataFim })
+            });
+            const logs = await res.json();
+            const tbody = document.getElementById('tabelaRelatorioPerguntas');
 
-                if (logs.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado para os filtros selecionados.</td></tr>`;
-                    return;
-                }
-
-                if (tipoRelatorio === 'respostas') {
-                    tbody.innerHTML = logs.map(r => `
-                        <tr>
-                            <td>${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString()}</td>
-                            <td>${r.usuarioId ? r.usuarioId.nome : 'Usuário Removido'}</td>
-                            <td><b>Pergunta:</b> ${r.perguntaId ? r.perguntaId.titulo : 'Pergunta Removida'}</td>
-                            <td>${r.humorId ? r.humorId.emoji + ' ' + r.humorId.titulo : '-'} ${r.comentario ? `(Comentário: ${r.comentario})` : ''}</td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = logs.map(r => `
-                        <tr>
-                            <td>${new Date(r.createdAt).toLocaleDateString()} ${new Date(r.createdAt).toLocaleTimeString()}</td>
-                            <td>${r.usuarioId ? r.usuarioId.nome : 'Usuário Removido'}</td>
-                            <td><b>Atividade:</b> ${r.atividadeId ? r.atividadeId.descricao : 'Atividade Removida'}</td>
-                            <td>Tempo Registrado: ${r.tempoMinutos || 0} min</td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Erro ao gerar relatório.');
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+                return;
             }
+
+            tbody.innerHTML = logs.map(r => `
+                <tr>
+                    <td>${new Date(r.createdAt).toLocaleString()}</td>
+                    <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
+                    <td><b>Pergunta:</b> ${r.perguntaId ? r.perguntaId.titulo : 'Removida'}</td>
+                    <td>Resposta registrada</td>
+                </tr>
+            `).join('');
+        }
+
+        async function gerarRelatorioAtividades() {
+            const itemId = document.getElementById('filtroAtivId').value;
+            const dataInicio = document.getElementById('filtroAtivDataInicio').value;
+            const dataFim = document.getElementById('filtroAtivDataFim').value;
+
+            const res = await fetch(`${API_URL}/relatorios/atividades`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemId, dataInicio, dataFim })
+            });
+            const logs = await res.json();
+            const tbody = document.getElementById('tabelaRelatorioAtividades');
+
+            if (logs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = logs.map(r => `
+                <tr>
+                    <td>${new Date(r.createdAt).toLocaleString()}</td>
+                    <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
+                    <td><b>Atividade:</b> ${r.atividadeId ? r.atividadeId.descricao : 'Removida'}</td>
+                </tr>
+            `).join('');
         }
     </script>
 </body>
