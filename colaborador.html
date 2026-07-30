@@ -169,6 +169,31 @@
             alert(`Obrigado pelo seu feedback! Humor "${humor}" registrado.`);
         }
 
+        // Função para buscar e renderizar na tela
+async function carregarAtividades() {
+    try {
+        const response = await fetch('http://localhost:3000/api/atividades');
+        const atividades = await response.json();
+        
+        const listaHtml = document.getElementById('lista-atividades');
+        listaHtml.innerHTML = ''; // Limpa a lista atual
+
+        atividades.forEach(ativ => {
+            listaHtml.innerHTML += `
+                <li>
+                    ${ativ.descricao} - Responsável: ${ativ.responsavel} 
+                    (${ativ.concluida ? 'Concluída' : 'Pendente'})
+                </li>
+            `;
+        });
+    } catch (error) {
+        console.error('Erro ao buscar atividades do banco:', error);
+    }
+}
+
+// Chamar a função assim que a página carregar
+window.onload = carregarAtividades;
+
         inicializarTela();
     </script>
 

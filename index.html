@@ -3,128 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - TeamPulse</title>
+    <title>TeamPulse - Acesso</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            overflow: hidden;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
-        .cartao-login {
-            background-color: white;
+        body {
+            background: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: white;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 350px;
+            max-width: 400px;
             text-align: center;
         }
-
-        .cartao-login h1 {
-            color: #1a73e8;
-            margin-top: 0;
-            margin-bottom: 5px;
+        h2 {
+            margin-bottom: 24px;
+            color: #333;
         }
-
-        .cartao-login p {
-            color: #666;
-            margin-bottom: 25px;
+        .input-group {
+            margin-bottom: 16px;
+            text-align: left;
         }
-
-        input {
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+        input, select {
             width: 100%;
             padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-sizing: border-box;
+            border: 1px solid #ddd;
+            border-radius: 6px;
             font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
         }
-
+        input:focus, select:focus {
+            border-color: #007bff;
+        }
         button {
             width: 100%;
             padding: 12px;
-            background-color: #1a73e8;
+            background: #007bff;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background 0.3s;
+            margin-top: 10px;
         }
-
         button:hover {
-            background-color: #1557b0;
+            background: #0056b3;
+        }
+        .toggle-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="cartao-login">
-        <h1>TeamPulse 💙</h1>
-        <p>Faça login para continuar</p>
-        
-        <input type="text" id="campoUsuario" placeholder="Usuário (ex: admin ou func)">
-        <input type="password" id="campoSenha" placeholder="Senha">
-        
-        <button onclick="fazerLogin()">Entrar</button>
+    <div class="container">
+        <!-- TELA DE LOGIN -->
+        <div id="divLogin">
+            <h2>TeamPulse - Login</h2>
+            <form id="formLogin" onsubmit="realizarLogin(event)">
+                <div class="input-group">
+                    <label for="loginEmail">E-mail</label>
+                    <input type="email" id="loginEmail" placeholder="Digite seu e-mail" required>
+                </div>
+                <div class="input-group">
+                    <label for="loginSenha">Senha</label>
+                    <input type="password" id="loginSenha" placeholder="Digite sua senha" required>
+                </div>
+                <button type="submit">Entrar</button>
+            </form>
+            <p class="toggle-link" onclick="alternarTela('cadastro')">Não tem uma conta? Cadastre-se</p>
+        </div>
+
+        <!-- TELA DE CADASTRO -->
+        <div id="divCadastro" class="hidden">
+            <h2>Criar Conta</h2>
+            <form id="formCadastro" onsubmit="cadastrarUsuarioComum(event)">
+                <div class="input-group">
+                    <label for="cadNome">Nome Completo</label>
+                    <input type="text" id="cadNome" placeholder="Seu nome" required>
+                </div>
+                <div class="input-group">
+                    <label for="cadEmail">E-mail</label>
+                    <input type="email" id="cadEmail" placeholder="seu@email.com" required>
+                </div>
+                <div class="input-group">
+                    <label for="cadSenha">Senha</label>
+                    <input type="password" id="cadSenha" placeholder="Sua senha" required>
+                </div>
+                <button type="submit" style="background: #28a745;">Cadastrar</button>
+            </form>
+            <p class="toggle-link" onclick="alternarTela('login')">Já tem uma conta? Faça login</p>
+        </div>
     </div>
 
     <script>
-        // Inicializa dados padrão caso o localStorage esteja vazio
-        function inicializarDados() {
-            if (!localStorage.getItem('tp_usuarios')) {
-                const usuariosIniciais = [
-                    { nome: "Administrador", usuario: "admin", senha: "123", perfil: "admin" },
-                    { nome: "Colaborador Teste", usuario: "func", senha: "123", perfil: "func" }
-                ];
-                localStorage.setItem('tp_usuarios', JSON.stringify(usuariosIniciais));
-            }
+        const API_URL = 'http://localhost:3000/api';
 
-            if (!localStorage.getItem('tp_atividades')) {
-                const atividadesIniciais = ["Lanche", "Reunião de Alinhamento", "Treinamento de Segurança"];
-                localStorage.setItem('tp_atividades', JSON.stringify(atividadesIniciais));
-            }
-
-            if (!localStorage.getItem('tp_humores')) {
-                const humoresIniciais = [
-                    { emoji: "🤩", texto: "Excelente" },
-                    { emoji: "😁", texto: "Muito bem" },
-                    { emoji: "🙂", texto: "Bem" },
-                    { emoji: "🙁", texto: "Não estou bem" },
-                    { emoji: "😫", texto: "Mal" }
-                ];
-                localStorage.setItem('tp_humores', JSON.stringify(humoresIniciais));
-            }
-        }
-
-        function fazerLogin() {
-            const usr = document.getElementById('campoUsuario').value.trim();
-            const pwd = document.getElementById('campoSenha').value.trim();
-
-            const usuarios = JSON.parse(localStorage.getItem('tp_usuarios')) || [];
-            const usuarioEncontrado = usuarios.find(u => u.usuario === usr && u.senha === pwd);
-
-            if (usuarioEncontrado) {
-                localStorage.setItem('tp_usuarioLogado', JSON.stringify(usuarioEncontrado));
-                if (usuarioEncontrado.perfil === 'admin') {
-                    window.location.href = 'admin.html';
-                } else {
-                    window.location.href = 'colaborador.html';
-                }
+        function alternarTela(tipo) {
+            if (tipo === 'cadastro') {
+                document.getElementById('divLogin').classList.add('hidden');
+                document.getElementById('divCadastro').classList.remove('hidden');
             } else {
-                alert('Usuário ou senha inválidos!');
+                document.getElementById('divCadastro').classList.add('hidden');
+                document.getElementById('divLogin').classList.remove('hidden');
             }
         }
 
-        inicializarDados();
+        async function realizarLogin(event) {
+            event.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const senha = document.getElementById('loginSenha').value.trim();
+
+            try {
+                const resposta = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const resultado = await resposta.json();
+
+                if (resposta.ok) {
+                    localStorage.setItem('usuarioLogado', JSON.stringify(resultado.usuario));
+                    
+                    // Valida pelo campo 'tipo' correto do Mongoose ('admin' ou 'colaborador')
+                    if (resultado.usuario.tipo === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'colaborador.html';
+                    }
+                } else {
+                    alert(resultado.erro || 'Credenciais inválidas.');
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro de conexão com o servidor.');
+            }
+        }
+
+        async function cadastrarUsuarioComum(event) {
+            event.preventDefault();
+            const nome = document.getElementById('cadNome').value.trim();
+            const email = document.getElementById('cadEmail').value.trim();
+            const senha = document.getElementById('cadSenha').value.trim();
+
+            try {
+                const resposta = await fetch(`${API_URL}/usuarios`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, senha, tipo: 'colaborador' })
+                });
+
+                const resultado = await resposta.json();
+
+                if (resposta.ok) {
+                    alert('Cadastro realizado com sucesso! Faça login agora.');
+                    alternarTela('login');
+                } else {
+                    alert('Erro ao cadastrar: ' + (resultado.erro || resultado.detalhe || 'Erro desconhecido'));
+                }
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro de conexão ao tentar cadastrar.');
+            }
+        }
     </script>
 </body>
 </html>
