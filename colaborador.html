@@ -12,25 +12,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
+            justify-content: flex-start;
+            min-height: 100vh;
             margin: 0;
-            padding: 10px;
+            padding: 20px 10px;
             box-sizing: border-box;
+            overflow-y: auto;
         }
 
-        .cabecalho {
-            text-align: center;
-            margin-bottom: 15px;
-        }
-
-        .cabecalho h1 {
-            color: #1a73e8;
-            margin-top: 0;
-            margin-bottom: 5px;
-            font-size: 28px;
-        }
+        .cabecalho { text-align: center; margin-bottom: 15px; }
+        .cabecalho h1 { color: #1a73e8; margin-top: 0; margin-bottom: 5px; font-size: 28px; }
 
         .cartao {
             background-color: white;
@@ -43,66 +34,35 @@
             text-align: center;
         }
 
-        .cartao h2 {
-            margin-top: 0;
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
+        .cartao h2 { margin-top: 0; font-size: 18px; margin-bottom: 15px; color: #202124; }
 
         select {
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            margin-bottom: 10px;
-            width: 80%;
+            padding: 8px; border-radius: 6px; border: 1px solid #ccc;
+            font-size: 14px; margin-bottom: 10px; width: 80%;
         }
 
         button {
-            padding: 10px 15px;
-            margin: 5px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-weight: bold;
+            padding: 10px 15px; margin: 5px; border: none; border-radius: 8px;
+            font-size: 15px; cursor: pointer; transition: 0.2s; font-weight: bold;
         }
+        button:hover { transform: scale(1.03); }
 
-        button:hover {
-            transform: scale(1.05); 
-        }
-
-        .btn-humor {
-            background-color: #e8f0fe;
-            color: #1a73e8;
-            display: inline-block;
-            margin: 5px;
-        }
-
+        .btn-humor { background-color: #e8f0fe; color: #1a73e8; display: inline-block; margin: 4px; }
         .btn-iniciar { background-color: #34a853; color: white; }
         .btn-finalizar { background-color: #ea4335; color: white; }
 
-        .tempo {
-            font-size: 42px;
-            font-weight: bold;
-            color: #202124;
-            margin: 10px 0;
-        }
+        .tempo { font-size: 42px; font-weight: bold; color: #202124; margin: 10px 0; }
     </style>
 </head>
 <body>
 
     <div class="cabecalho">
-        <h1>TeamPulse 💙</h1>
+        <h1>TeamPulse ⚡</h1>
         <p>Sistema de Gestão de Tempo e Bem-estar</p>
     </div>
 
-    <!-- Cartão do Termômetro de Humor -->
-    <div class="cartao">
-        <h2 id="tituloPergunta">Carregando pergunta...</h2>
-        <div id="containerHumoresColaborador"></div>
-    </div>
+    <!-- Container onde serão renderizadas TODAS as perguntas ativas (máx 4) -->
+    <div id="containerPerguntasColaborador" style="width: 100%; max-width: 500px;"></div>
 
     <!-- Cartão do Cronômetro de Atividades -->
     <div class="cartao">
@@ -115,60 +75,60 @@
         <div class="tempo" id="displayTempo">00:00:00</div>
         
         <button class="btn-iniciar" onclick="iniciarCronometro()">▶ Iniciar</button>
-        <!-- BOTÃO DE PAUSAR FOI REMOVIDO DAQUI -->
         <button class="btn-finalizar" onclick="finalizarCronometro()">⏹ Finalizar</button>
     </div>
 
     <script>
         let tempoSegundos = 0;
         let timer = null;
-        let perguntaAtualId = null;
 
-        // Função que roda ao abrir a tela
         async function inicializarTela() {
-            await carregarPergunta();
+            await carregarPerguntas();
             await carregarAtividades();
         }
 
-        // ==========================================
-        // 1. LÓGICA DO TERMÔMETRO DE HUMOR
-        // ==========================================
-        
-        async function carregarPergunta() {
+        // Carrega e renderiza todas as perguntas ativas
+        async function carregarPerguntas() {
             try {
                 const response = await fetch('http://localhost:3000/api/perguntas');
                 const perguntas = await response.json();
                 
-                const containerH = document.getElementById('containerHumoresColaborador');
-                const tituloH = document.getElementById('tituloPergunta');
-                containerH.innerHTML = '';
+                const container = document.getElementById('containerPerguntasColaborador');
+                container.innerHTML = '';
 
-                if (perguntas.length > 0) {
-                    // Pega a pergunta ativa
-                    const pergunta = perguntas.find(p => p.ativa) || perguntas[0];
-                    perguntaAtualId = pergunta._id;
-                    tituloH.innerText = pergunta.titulo;
+                // Filtra as perguntas ativas e limita a 4
+                const ativas = perguntas.filter(p => p.ativa !== false).slice(0, 4);
 
-                    pergunta.opcoes.forEach(opcao => {
-                        // Passamos o ID da opção clicada para a função registrarHumor
-                        containerH.innerHTML += `<button class="btn-humor" onclick="registrarHumor('${opcao._id}')">${opcao.emoji} ${opcao.texto}</button>`;
+                if (ativas.length > 0) {
+                    ativas.forEach(pergunta => {
+                        let botoesRespostas = pergunta.opcoes.map(opcao => `
+                            <button class="btn-humor" onclick="registrarHumor('${pergunta._id}', '${opcao._id}')">
+                                ${opcao.emoji ? opcao.emoji + ' ' : ''}${opcao.texto}
+                            </button>
+                        `).join('');
+
+                        container.innerHTML += `
+                            <div class="cartao">
+                                <h2>${pergunta.titulo}</h2>
+                                <div>${botoesRespostas}</div>
+                            </div>
+                        `;
                     });
                 } else {
-                    tituloH.innerText = "Nenhuma pergunta configurada no momento.";
+                    container.innerHTML = `
+                        <div class="cartao">
+                            <h2>Nenhuma pergunta configurada no momento.</h2>
+                        </div>
+                    `;
                 }
             } catch (error) {
-                console.error('Erro ao buscar perguntas do banco:', error);
+                console.error('Erro ao buscar perguntas:', error);
             }
         }
 
-        async function registrarHumor(opcaoId) {
-            // Pega o usuário logado do localStorage (criado no momento do login)
+        async function registrarHumor(perguntaId, opcaoId) {
             const userStr = localStorage.getItem('usuarioLogado');
-            if (!userStr) {
-                alert("Erro: Usuário não autenticado. Faça login novamente.");
-                return;
-            }
-            
+            if (!userStr) return alert("Erro: Faça login novamente.");
             const usuario = JSON.parse(userStr);
 
             try {
@@ -176,8 +136,8 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        usuarioId: usuario._id, // Envia o ID do colaborador
-                        perguntaId: perguntaAtualId,
+                        usuarioId: usuario._id,
+                        perguntaId: perguntaId,
                         opcaoId: opcaoId,
                         comentario: ''
                     })
@@ -185,25 +145,18 @@
 
                 const data = await response.json();
 
-                // Trava: se o backend retornar 403, significa que ele já respondeu hoje
                 if (response.status === 403) {
-                    alert(data.erro); // Mostra: "Você já respondeu a esta pergunta hoje..."
+                    alert(data.erro);
                     return;
                 }
 
                 if (!response.ok) throw new Error(data.erro);
-
                 alert("Obrigado pelo seu feedback! Sua resposta foi registrada com sucesso.");
 
             } catch (error) {
-                console.error("Erro ao registrar humor:", error);
-                alert("Ocorreu um erro ao enviar a resposta.");
+                alert(error.message || "Ocorreu um erro ao enviar a resposta.");
             }
         }
-
-        // ==========================================
-        // 2. LÓGICA DE ATIVIDADES E CRONÔMETRO
-        // ==========================================
 
         async function carregarAtividades() {
             try {
@@ -211,14 +164,13 @@
                 const atividades = await response.json();
                 
                 const selectA = document.getElementById('selectAtividades');
-                selectA.innerHTML = ''; // Limpa a lista atual
+                selectA.innerHTML = '';
 
                 atividades.forEach(ativ => {
-                    // Preenche o Select com as atividades do banco
                     selectA.innerHTML += `<option value="${ativ._id}">${ativ.descricao}</option>`;
                 });
             } catch (error) {
-                console.error('Erro ao buscar atividades do banco:', error);
+                console.error('Erro ao buscar atividades:', error);
             }
         }
 
@@ -229,12 +181,36 @@
             document.getElementById('displayTempo').innerText = `${hrs}:${mins}:${segs}`;
         }
 
-        function iniciarCronometro() {
-            if (timer) return; // Impede múltiplos cliques no "Iniciar"
-            timer = setInterval(() => {
-                tempoSegundos++;
-                atualizarDisplay();
-            }, 1000);
+        async function iniciarCronometro() {
+            if (timer) return;
+            const userStr = localStorage.getItem('usuarioLogado');
+            if (!userStr) return alert("Erro de autenticação!");
+            const usuario = JSON.parse(userStr);
+
+            const selectA = document.getElementById('selectAtividades');
+            const atividadeId = selectA.value;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/iniciar-atividade', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuarioId: usuario._id, atividadeId })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    alert(data.erro);
+                    return;
+                }
+
+                timer = setInterval(() => {
+                    tempoSegundos++;
+                    atualizarDisplay();
+                }, 1000);
+
+            } catch (err) {
+                alert("Erro ao conectar com o servidor para iniciar atividade.");
+            }
         }
 
         async function finalizarCronometro() {
@@ -243,43 +219,37 @@
                 return;
             }
 
-            // Para o cronômetro imediatamente
             clearInterval(timer);
             timer = null;
             
-            // Pega o nome da atividade selecionada
             const selectA = document.getElementById('selectAtividades');
             const atividadeId = selectA.value;
             const atividadeNome = selectA.options[selectA.selectedIndex].text;
             const tempoFinal = document.getElementById('displayTempo').innerText;
 
-            // Alerta na tela
-            alert(`Atividade "${atividadeNome}" finalizada!\nTempo total: ${tempoFinal}`);
-            
-            // Registra a atividade concluída no banco de dados
             const userStr = localStorage.getItem('usuarioLogado');
             if (userStr) {
                 const usuario = JSON.parse(userStr);
                 try {
-                    await fetch('http://localhost:3000/api/registrar-atividade', {
+                    await fetch('http://localhost:3000/api/finalizar-atividade', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             usuarioId: usuario._id,
-                            atividadeId: atividadeId
+                            atividadeId: atividadeId,
+                            duracaoSegundos: tempoSegundos
                         })
                     });
                 } catch (e) {
-                    console.error("Erro ao salvar log de atividade", e);
+                    console.error("Erro ao finalizar atividade no banco", e);
                 }
             }
 
-            // Zera o painel visualmente para uma nova atividade
+            alert(`Atividade "${atividadeNome}" finalizada!\nTempo total: ${tempoFinal}`);
             tempoSegundos = 0;
             atualizarDisplay();
         }
 
-        // Inicia carregamentos assim que a tela abre
         window.onload = inicializarTela;
     </script>
 </body>

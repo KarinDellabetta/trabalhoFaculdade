@@ -42,7 +42,7 @@
             color: #555;
             font-size: 14px;
         }
-        input, select {
+        input {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -51,7 +51,7 @@
             outline: none;
             transition: border-color 0.3s;
         }
-        input:focus, select:focus {
+        input:focus {
             border-color: #007bff;
         }
         button {
@@ -70,24 +70,12 @@
         button:hover {
             background: #0056b3;
         }
-        .toggle-link {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #007bff;
-            cursor: pointer;
-        }
-        .toggle-link:hover {
-            text-decoration: underline;
-        }
-        .hidden {
-            display: none;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- TELA DE LOGIN -->
+        <!-- TELA DE LOGIN EXCLUSIVA -->
         <div id="divLogin">
             <h2>TeamPulse - Login</h2>
             <form id="formLogin" onsubmit="realizarLogin(event)">
@@ -101,43 +89,11 @@
                 </div>
                 <button type="submit">Entrar</button>
             </form>
-            <p class="toggle-link" onclick="alternarTela('cadastro')">Não tem uma conta? Cadastre-se</p>
-        </div>
-
-        <!-- TELA DE CADASTRO -->
-        <div id="divCadastro" class="hidden">
-            <h2>Criar Conta</h2>
-            <form id="formCadastro" onsubmit="cadastrarUsuarioComum(event)">
-                <div class="input-group">
-                    <label for="cadNome">Nome Completo</label>
-                    <input type="text" id="cadNome" placeholder="Seu nome" required>
-                </div>
-                <div class="input-group">
-                    <label for="cadEmail">E-mail</label>
-                    <input type="email" id="cadEmail" placeholder="seu@email.com" required>
-                </div>
-                <div class="input-group">
-                    <label for="cadSenha">Senha</label>
-                    <input type="password" id="cadSenha" placeholder="Sua senha" required>
-                </div>
-                <button type="submit" style="background: #28a745;">Cadastrar</button>
-            </form>
-            <p class="toggle-link" onclick="alternarTela('login')">Já tem uma conta? Faça login</p>
         </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:3000/api';
-
-        function alternarTela(tipo) {
-            if (tipo === 'cadastro') {
-                document.getElementById('divLogin').classList.add('hidden');
-                document.getElementById('divCadastro').classList.remove('hidden');
-            } else {
-                document.getElementById('divCadastro').classList.add('hidden');
-                document.getElementById('divLogin').classList.remove('hidden');
-            }
-        }
 
         async function realizarLogin(event) {
             event.preventDefault();
@@ -156,7 +112,6 @@
                 if (resposta.ok) {
                     localStorage.setItem('usuarioLogado', JSON.stringify(resultado.usuario));
                     
-                    // Valida pelo campo 'tipo' correto do Mongoose ('admin' ou 'colaborador')
                     if (resultado.usuario.tipo === 'admin') {
                         window.location.href = 'admin.html';
                     } else {
@@ -168,33 +123,6 @@
             } catch (erro) {
                 console.error(erro);
                 alert('Erro de conexão com o servidor.');
-            }
-        }
-
-        async function cadastrarUsuarioComum(event) {
-            event.preventDefault();
-            const nome = document.getElementById('cadNome').value.trim();
-            const email = document.getElementById('cadEmail').value.trim();
-            const senha = document.getElementById('cadSenha').value.trim();
-
-            try {
-                const resposta = await fetch(`${API_URL}/usuarios`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, email, senha, tipo: 'colaborador' })
-                });
-
-                const resultado = await resposta.json();
-
-                if (resposta.ok) {
-                    alert('Cadastro realizado com sucesso! Faça login agora.');
-                    alternarTela('login');
-                } else {
-                    alert('Erro ao cadastrar: ' + (resultado.erro || resultado.detalhe || 'Erro desconhecido'));
-                }
-            } catch (erro) {
-                console.error(erro);
-                alert('Erro de conexão ao tentar cadastrar.');
             }
         }
     </script>
