@@ -340,7 +340,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://teampulse-backend.onrender.com/api';
+        const API_URL = "https://teampulse-hm2o.onrender.com";
         let listaPerguntasCache = [];
         let listaAtividadesCache = [];
         let opcoesAtuais = [{ texto: '', emoji: '', valor: 1 }];
@@ -643,8 +643,28 @@
                 `).join('');
 
                 const sel = document.getElementById('filtroAtivId');
-                sel.innerHTML = '<option value="">Todas</option>' + listaAtividadesCache.map(a => `<option value="${a._id}">${a.descricao}</option>`).join('');
+                if (sel) {
+                    sel.innerHTML = '<option value="">Todas</option>' + listaAtividadesCache.map(a => `<option value="${a._id}">${a.descricao}</option>`).join('');
+                }
             } catch (e) { console.error('Erro ao carregar atividades', e); }
+        }
+
+        function prepararEdicaoAtividade(id, descricao, limite) {
+            document.getElementById('atividadeEditId').value = id;
+            document.getElementById('atvDescricao').value = descricao;
+            document.getElementById('atvLimite').value = limite;
+
+            document.getElementById('tituloFormAtividade').innerText = 'Editar Atividade';
+            document.getElementById('btnSalvarAtividade').innerText = 'Salvar Alterações';
+            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'inline-block';
+        }
+
+        function cancelarEdicaoAtividade() {
+            document.getElementById('atividadeEditId').value = '';
+            document.getElementById('formCadAtividade').reset();
+            document.getElementById('tituloFormAtividade').innerText = 'Nova Atividade';
+            document.getElementById('btnSalvarAtividade').innerText = 'Adicionar Atividade';
+            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'none';
         }
 
         async function salvarAtividade(e) {
@@ -655,8 +675,11 @@
                 limiteSimultaneo: Number(document.getElementById('atvLimite').value)
             };
 
-            const res = await fetch(id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`, {
-                method: id ? 'PUT' : 'POST',
+            const url = id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`;
+            const method = id ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method: method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
@@ -669,25 +692,6 @@
                 const err = await res.json();
                 alert('Erro: ' + (err.erro || 'Erro ao salvar atividade.'));
             }
-        }
-
-        function prepararEdicaoAtividade(id, desc, limite) {
-            document.getElementById('atividadeEditId').value = id;
-            document.getElementById('atvDescricao').value = desc;
-            document.getElementById('atvLimite').value = limite;
-
-            document.getElementById('tituloFormAtividade').innerText = 'Editar Atividade';
-            document.getElementById('btnSalvarAtividade').innerText = 'Salvar Alterações';
-            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'inline-block';
-        }
-
-        function cancelarEdicaoAtividade() {
-            document.getElementById('atividadeEditId').value = '';
-            document.getElementById('formCadAtividade').reset();
-            document.getElementById('atvLimite').value = '0';
-            document.getElementById('tituloFormAtividade').innerText = 'Nova Atividade';
-            document.getElementById('btnSalvarAtividade').innerText = 'Adicionar Atividade';
-            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'none';
         }
 
         async function deletarAtividade(id) {
@@ -704,46 +708,66 @@
 
         // --- RELATÓRIOS ---
         async function gerarRelatorioPerguntas() {
+            const perguntaId = document.getElementById('filtroPerguntaId').value;
+            const inicio = document.getElementById('filtroPergDataInicio').value;
+            const fim = document.getElementById('filtroPergDataFim').value;
+
+            let query = [];
+            if (perguntaId) query.push(`perguntaId=${perguntaId}`);
+            if (inicio) query.push(`inicio=${inicio}`);
+            if (fim) query.push(`fim=${fim}`);
+
+            const queryString = query.length ? '?' + query.join('&') : '';
+
             try {
-                const res = await fetch(`${API_URL}/relatorios/perguntas`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        itemId: document.getElementById('filtroPerguntaId').value,
-                        dataInicio: document.getElementById('filtroPergDataInicio').value,
-                        dataFim: document.getElementById('filtroPergDataFim').value
-                    })
-                });
-                const logs = await res.json();
-                document.getElementById('tabelaRelatorioPerguntas').innerHTML = logs.map(r => `
+                const res = await fetch(`${API_URL}/respostas/relatorio${queryString}`);
+                const dados = await res.json();
+                const tbody = document.getElementById('tabelaRelatorioPerguntas');
+
+                if (!dados || dados.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = dados.map(r => `
                     <tr>
-                        <td>${r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '-'}</td>
+                        <td>${r.criadoEm ? new Date(r.criadoEm).toLocaleDateString('pt-BR') : '-'}</td>
                         <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
                         <td>${r.perguntaId ? r.perguntaId.titulo : 'Removida'}</td>
-                        <td>${r.resposta || r.respostaTexto || '-'}</td>
+                        <td>${r.opcaoTexto || r.resposta || '-'}</td>
                     </tr>
                 `).join('');
             } catch (e) { console.error('Erro ao gerar relatório de perguntas', e); }
         }
 
         async function gerarRelatorioAtividades() {
+            const atividadeId = document.getElementById('filtroAtivId').value;
+            const inicio = document.getElementById('filtroAtivDataInicio').value;
+            const fim = document.getElementById('filtroAtivDataFim').value;
+
+            let query = [];
+            if (atividadeId) query.push(`atividadeId=${atividadeId}`);
+            if (inicio) query.push(`inicio=${inicio}`);
+            if (fim) query.push(`fim=${fim}`);
+
+            const queryString = query.length ? '?' + query.join('&') : '';
+
             try {
-                const res = await fetch(`${API_URL}/relatorios/atividades`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        itemId: document.getElementById('filtroAtivId').value,
-                        dataInicio: document.getElementById('filtroAtivDataInicio').value,
-                        dataFim: document.getElementById('filtroAtivDataFim').value
-                    })
-                });
-                const logs = await res.json();
-                document.getElementById('tabelaRelatorioAtividades').innerHTML = logs.map(r => `
+                const res = await fetch(`${API_URL}/atividades/relatorio${queryString}`);
+                const dados = await res.json();
+                const tbody = document.getElementById('tabelaRelatorioAtividades');
+
+                if (!dados || dados.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = dados.map(a => `
                     <tr>
-                        <td>${r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '-'}</td>
-                        <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
-                        <td>${r.atividadeId ? r.atividadeId.descricao : 'Removida'}</td>
-                        <td>${r.duracaoSegundos || 0}s</td>
+                        <td>${a.inicio ? new Date(a.inicio).toLocaleDateString('pt-BR') : '-'}</td>
+                        <td>${a.usuarioId ? a.usuarioId.nome : 'Removido'}</td>
+                        <td>${a.atividadeId ? a.atividadeId.descricao : 'Removida'}</td>
+                        <td>${a.duracaoSegundos || 0}s</td>
                     </tr>
                 `).join('');
             } catch (e) { console.error('Erro ao gerar relatório de atividades', e); }

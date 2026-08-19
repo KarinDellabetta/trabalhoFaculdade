@@ -46,7 +46,6 @@ const AtividadeSchema = new mongoose.Schema({
 });
 const Atividade = mongoose.models.Atividade || mongoose.model('Atividade', AtividadeSchema);
 
-// Sessões ativas no momento
 const AtividadeAtivaSchema = new mongoose.Schema({
     usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true, unique: true },
     atividadeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Atividade', required: true },
@@ -62,7 +61,7 @@ const AtividadeLogSchema = new mongoose.Schema({
 const AtividadeLog = mongoose.models.AtividadeLog || mongoose.model('AtividadeLog', AtividadeLogSchema);
 
 // Conexão MongoDB Atlas
-const mongoURI = 'mongodb+srv://bettaleuck_db_user:JNFwTEB5SSz40Dvj@projetofaculdade.ofrlixt.mongodb.net/teampulse?appName=ProjetoFaculdade';
+const mongoURI = process.env.MONGO_URI || 'mongodb+srv://bettaleuck_db_user:JNFwTEB5SSz40Dvj@projetofaculdade.ofrlixt.mongodb.net/teampulse?appName=ProjetoFaculdade';
 
 mongoose.connect(mongoURI)
     .then(async () => {
@@ -108,7 +107,7 @@ async function inicializarSistema() {
 }
 
 // --- ROTAS AUTENTICAÇÃO E USUÁRIOS ---
-app.post('/api/login', async (req, res) => {
+app.post(['/login', '/api/login'], async (req, res) => {
     const { email, senha } = req.body;
     try {
         const user = await Usuario.findOne({ email: email.trim().toLowerCase() });
@@ -119,8 +118,11 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.get('/api/usuarios', async (req, res) => res.json(await Usuario.find()));
-app.post('/api/usuarios', async (req, res) => {
+app.get(['/usuarios', '/api/usuarios'], async (req, res) => {
+    try { res.json(await Usuario.find()); } catch (e) { res.status(500).json({ erro: 'Erro ao buscar usuários' }); }
+});
+
+app.post(['/usuarios', '/api/usuarios'], async (req, res) => {
     try {
         const { nome, email, senha, tipo } = req.body;
         const novo = new Usuario({ nome, email: email.trim().toLowerCase(), senha, tipo: tipo || 'colaborador' });
@@ -128,7 +130,8 @@ app.post('/api/usuarios', async (req, res) => {
         res.status(201).json(novo);
     } catch (e) { res.status(400).json({ erro: 'Erro ao criar usuário' }); }
 });
-app.put('/api/usuarios/:id', async (req, res) => {
+
+app.put(['/usuarios/:id', '/api/usuarios/:id'], async (req, res) => {
     try {
         const { nome, email, senha, tipo } = req.body;
         const dados = { nome, email: email?.trim().toLowerCase(), tipo };
@@ -136,27 +139,33 @@ app.put('/api/usuarios/:id', async (req, res) => {
         res.json(await Usuario.findByIdAndUpdate(req.params.id, dados, { new: true }));
     } catch (e) { res.status(400).json({ erro: 'Erro ao atualizar' }); }
 });
-app.delete('/api/usuarios/:id', async (req, res) => {
+
+app.delete(['/usuarios/:id', '/api/usuarios/:id'], async (req, res) => {
     try { await Usuario.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro ao excluir' }); }
 });
 
 // --- ROTAS PERGUNTAS ---
-app.get('/api/perguntas', async (req, res) => res.json(await Pergunta.find()));
-app.post('/api/perguntas', async (req, res) => {
+app.get(['/perguntas', '/api/perguntas'], async (req, res) => {
+    try { res.json(await Pergunta.find()); } catch (e) { res.status(500).json({ erro: 'Erro ao buscar perguntas' }); }
+});
+
+app.post(['/perguntas', '/api/perguntas'], async (req, res) => {
     try {
         if (await Pergunta.countDocuments() >= 4) return res.status(400).json({ erro: 'Máximo de 4 perguntas atingido!' });
         res.status(201).json(await new Pergunta(req.body).save());
     } catch (e) { res.status(400).json({ erro: 'Erro ao criar pergunta' }); }
 });
-app.put('/api/perguntas/:id', async (req, res) => {
-    try { res.json(await Pergunta.findByIdAndUpdate(req.params.id, req.body, { new: true })); } catch (e) { res.status(400).json({ erro: 'Erro' }); }
+
+app.put(['/perguntas/:id', '/api/perguntas/:id'], async (req, res) => {
+    try { res.json(await Pergunta.findByIdAndUpdate(req.params.id, req.body, { new: true })); } catch (e) { res.status(400).json({ erro: 'Erro ao atualizar pergunta' }); }
 });
-app.delete('/api/perguntas/:id', async (req, res) => {
-    try { await Pergunta.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro' }); }
+
+app.delete(['/perguntas/:id', '/api/perguntas/:id'], async (req, res) => {
+    try { await Pergunta.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro ao excluir pergunta' }); }
 });
 
 // --- RESPOSTAS DE HUMOR (BLOQUEIO 1 POR DIA) ---
-app.post('/api/responder-pergunta', async (req, res) => {
+app.post(['/responder-pergunta', '/api/responder-pergunta'], async (req, res) => {
     try {
         const { usuarioId, perguntaId, opcaoId, comentario } = req.body;
         const hojeInicio = new Date(); hojeInicio.setHours(0,0,0,0);
@@ -179,25 +188,29 @@ app.post('/api/responder-pergunta', async (req, res) => {
 });
 
 // --- ROTAS ATIVIDADES & CONTROLE DE SIMULTANEIDADE ---
-app.get('/api/atividades', async (req, res) => res.json(await Atividade.find()));
-app.post('/api/atividades', async (req, res) => {
-    try { res.status(201).json(await new Atividade(req.body).save()); } catch (e) { res.status(400).json({ erro: 'Erro' }); }
+app.get(['/atividades', '/api/atividades'], async (req, res) => {
+    try { res.json(await Atividade.find()); } catch (e) { res.status(500).json({ erro: 'Erro ao buscar atividades' }); }
 });
-app.put('/api/atividades/:id', async (req, res) => {
-    try { res.json(await Atividade.findByIdAndUpdate(req.params.id, req.body, { new: true })); } catch (e) { res.status(400).json({ erro: 'Erro' }); }
+
+app.post(['/atividades', '/api/atividades'], async (req, res) => {
+    try { res.status(201).json(await new Atividade(req.body).save()); } catch (e) { res.status(400).json({ erro: 'Erro ao salvar atividade' }); }
 });
-app.delete('/api/atividades/:id', async (req, res) => {
-    try { await Atividade.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro' }); }
+
+app.put(['/atividades/:id', '/api/atividades/:id'], async (req, res) => {
+    try { res.json(await Atividade.findByIdAndUpdate(req.params.id, req.body, { new: true })); } catch (e) { res.status(400).json({ erro: 'Erro ao atualizar atividade' }); }
+});
+
+app.delete(['/atividades/:id', '/api/atividades/:id'], async (req, res) => {
+    try { await Atividade.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro ao excluir atividade' }); }
 });
 
 // Iniciar Atividade no Colaborador
-app.post('/api/iniciar-atividade', async (req, res) => {
+app.post(['/iniciar-atividade', '/api/iniciar-atividade'], async (req, res) => {
     try {
         const { usuarioId, atividadeId } = req.body;
         const atividade = await Atividade.findById(atividadeId);
         if (!atividade) return res.status(404).json({ erro: 'Atividade não encontrada' });
 
-        // Verifica o limite de simultaneidade se for maior que zero
         if (atividade.limiteSimultaneo > 0) {
             const pessoasAtivas = await AtividadeAtiva.countDocuments({ atividadeId });
             if (pessoasAtivas >= atividade.limiteSimultaneo) {
@@ -207,7 +220,6 @@ app.post('/api/iniciar-atividade', async (req, res) => {
             }
         }
 
-        // Remove qualquer atividade anterior travada deste usuário e cria a nova
         await AtividadeAtiva.deleteMany({ usuarioId });
         const novaSessao = new AtividadeAtiva({ usuarioId, atividadeId, inicio: new Date() });
         await novaSessao.save();
@@ -219,7 +231,7 @@ app.post('/api/iniciar-atividade', async (req, res) => {
 });
 
 // Finalizar Atividade no Colaborador
-app.post('/api/finalizar-atividade', async (req, res) => {
+app.post(['/finalizar-atividade', '/api/finalizar-atividade'], async (req, res) => {
     try {
         const { usuarioId, atividadeId, duracaoSegundos } = req.body;
         await AtividadeAtiva.deleteMany({ usuarioId });
@@ -234,12 +246,11 @@ app.post('/api/finalizar-atividade', async (req, res) => {
 });
 
 // --- DASHBOARD METRICS & TEMPO REAL ---
-app.get('/api/dashboard/estatisticas', async (req, res) => {
+app.get(['/dashboard/estatisticas', '/api/dashboard/estatisticas'], async (req, res) => {
     try {
         const totalUsuarios = await Usuario.countDocuments({ tipo: 'colaborador' });
         const atividadesAndamento = await AtividadeAtiva.find().populate('usuarioId atividadeId');
         
-        // Distribuição de Humor de Hoje
         const hojeInicio = new Date(); hojeInicio.setHours(0,0,0,0);
         const logsHoje = await HumorLog.find({ createdAt: { $gte: hojeInicio } }).populate('perguntaId');
 
@@ -255,33 +266,66 @@ app.get('/api/dashboard/estatisticas', async (req, res) => {
 });
 
 // --- RELATÓRIOS ---
-app.post('/api/relatorios/perguntas', async (req, res) => {
+app.get(['/respostas/relatorio', '/api/respostas/relatorio', '/api/relatorios/perguntas'], async (req, res) => {
     try {
-        const { itemId, dataInicio, dataFim } = req.body;
-        let filtro = {};
-        if (dataInicio && dataFim) {
-            filtro.createdAt = { $gte: new Date(dataInicio), $lte: new Date(new Date(dataFim).setHours(23,59,59)) };
-        }
-        if (itemId) filtro.perguntaId = itemId;
+        const { perguntaId, itemId, inicio, dataInicio, fim, dataFim } = req.query;
+        const targetPergunta = perguntaId || itemId;
+        const targetInicio = inicio || dataInicio;
+        const targetFim = fim || dataFim;
 
-        const logs = await HumorLog.find(filtro).populate('usuarioId perguntaId').sort({ createdAt: -1 });
-        res.json(logs);
-    } catch (err) { res.status(500).json({ erro: 'Erro ao gerar relatório' }); }
+        let filtro = {};
+
+        if (targetInicio || targetFim) {
+            filtro.createdAt = {};
+            if (targetInicio) filtro.createdAt.$gte = new Date(targetInicio);
+            if (targetFim) filtro.createdAt.$lte = new Date(new Date(targetFim).setHours(23, 59, 59, 999));
+        }
+
+        if (targetPergunta) filtro.perguntaId = targetPergunta;
+
+        const logs = await HumorLog.find(filtro).populate('usuarioId perguntaId').sort({ createdAt: -1 }).lean();
+
+        // Mapeia o texto e emoji da opção selecionada
+        const logsFormatados = logs.map(log => {
+            let opcaoTexto = '-';
+            if (log.perguntaId && Array.isArray(log.perguntaId.opcoes)) {
+                const opcaoEncontrada = log.perguntaId.opcoes.find(op => op._id.toString() === log.opcaoId?.toString());
+                if (opcaoEncontrada) {
+                    opcaoTexto = `${opcaoEncontrada.emoji ? opcaoEncontrada.emoji + ' ' : ''}${opcaoEncontrada.texto}`;
+                }
+            }
+            return { ...log, opcaoTexto };
+        });
+
+        res.json(logsFormatados);
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao gerar relatório de perguntas' });
+    }
 });
 
-app.post('/api/relatorios/atividades', async (req, res) => {
+app.get(['/atividades/relatorio', '/api/atividades/relatorio', '/api/relatorios/atividades'], async (req, res) => {
     try {
-        const { itemId, dataInicio, dataFim } = req.body;
+        const { atividadeId, itemId, inicio, dataInicio, fim, dataFim } = req.query;
+        const targetAtividade = atividadeId || itemId;
+        const targetInicio = inicio || dataInicio;
+        const targetFim = fim || dataFim;
+
         let filtro = {};
-        if (dataInicio && dataFim) {
-            filtro.createdAt = { $gte: new Date(dataInicio), $lte: new Date(new Date(dataFim).setHours(23,59,59)) };
+
+        if (targetInicio || targetFim) {
+            filtro.createdAt = {};
+            if (targetInicio) filtro.createdAt.$gte = new Date(targetInicio);
+            if (targetFim) filtro.createdAt.$lte = new Date(new Date(targetFim).setHours(23, 59, 59, 999));
         }
-        if (itemId) filtro.atividadeId = itemId;
+
+        if (targetAtividade) filtro.atividadeId = targetAtividade;
 
         const logs = await AtividadeLog.find(filtro).populate('usuarioId atividadeId').sort({ createdAt: -1 });
         res.json(logs);
-    } catch (err) { res.status(500).json({ erro: 'Erro ao gerar relatório' }); }
+    } catch (err) {
+        res.status(500).json({ erro: 'Erro ao gerar relatório de atividades' });
+    }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando em http://localhost:${PORT}`));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));

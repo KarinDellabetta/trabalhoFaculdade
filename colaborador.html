@@ -248,6 +248,8 @@
     </div>
 
     <script>
+        const API_URL = 'https://teampulse-hm2o.onrender.com';
+
         let tempoSegundos = 0;
         let timer = null;
 
@@ -258,7 +260,7 @@
 
         async function carregarPerguntas() {
             try {
-                const response = await fetch('http://localhost:3000/api/perguntas');
+                const response = await fetch(`${API_URL}/api/perguntas`);
                 const perguntas = await response.json();
                 
                 const mainContainer = document.getElementById('mainContainer');
@@ -310,7 +312,7 @@
             const usuario = JSON.parse(userStr);
 
             try {
-                const response = await fetch('http://localhost:3000/api/responder-pergunta', {
+                const response = await fetch(`${API_URL}/api/responder-pergunta`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -338,7 +340,7 @@
 
         async function carregarAtividades() {
             try {
-                const response = await fetch('http://localhost:3000/api/atividades');
+                const response = await fetch(`${API_URL}/api/atividades`);
                 const atividades = await response.json();
                 
                 const selectA = document.getElementById('selectAtividades');
@@ -369,7 +371,7 @@
             const atividadeId = selectA.value;
 
             try {
-                const res = await fetch('http://localhost:3000/api/iniciar-atividade', {
+                const res = await fetch(`${API_URL}/api/iniciar-atividade`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ usuarioId: usuario._id, atividadeId })
@@ -409,7 +411,7 @@
             if (userStr) {
                 const usuario = JSON.parse(userStr);
                 try {
-                    await fetch('http://localhost:3000/api/finalizar-atividade', {
+                    await fetch(`${API_URL}/api/finalizar-atividade`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
