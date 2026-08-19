@@ -12,6 +12,7 @@
         }
 
         body {
+            
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f1f5f9;
             color: #0f172a;
@@ -24,6 +25,22 @@
             padding: 20px;
         }
 
+        .btn-sair {
+    background-color: #ef4444;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn-sair:hover {
+    background-color: #dc2626;
+}
+    
         .cabecalho {
             text-align: center;
             margin-bottom: 24px;
@@ -218,7 +235,9 @@
     </style>
 </head>
 <body>
-
+    <div style="position: absolute; top: 20px; right: 20px;">
+    <button onclick="logout()" class="btn-sair">Sair do Sistema</button>
+</div>
     <div class="cabecalho">
         <h1>TeamPulse ⚡</h1>
         <p>Sistema de Gestão de Tempo e Bem-estar</p>
@@ -257,6 +276,11 @@
             await carregarPerguntas();
             await carregarAtividades();
         }
+        
+        function logout() {
+    localStorage.removeItem('usuario'); // Limpa a sessão salva
+    window.location.href = 'index.html'; // Redireciona para a tela de login
+}
 
         async function carregarPerguntas() {
             try {
