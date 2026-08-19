@@ -5,53 +5,216 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeamPulse - Ponto e Bem-estar</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
+            background-color: #f1f5f9;
+            color: #0f172a;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px 10px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        .cabecalho { text-align: center; margin-bottom: 15px; }
-        .cabecalho h1 { color: #1a73e8; margin-top: 0; margin-bottom: 5px; font-size: 28px; }
-
-        .cartao {
-            background-color: white;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 500px;
-            margin-bottom: 15px;
-            text-align: center;
         }
 
-        .cartao h2 { margin-top: 0; font-size: 18px; margin-bottom: 15px; color: #202124; }
+        .cabecalho {
+            text-align: center;
+            margin-bottom: 24px;
+        }
 
-        select {
-            padding: 8px; border-radius: 6px; border: 1px solid #ccc;
-            font-size: 14px; margin-bottom: 10px; width: 80%;
+        .cabecalho h1 {
+            color: #0284c7;
+            font-size: 32px;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        .cabecalho p {
+            color: #64748b;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* CONTAINER PRINCIPAL DILATÁVEL */
+        .main-container {
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        /* LAYOUT 1: PARA 1 A 3 PERGUNTAS (CENTRALIZADO EM COLUNA) */
+        .main-container.layout-centrado {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 680px;
+            gap: 20px;
+        }
+
+        .perguntas-centradas {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 16px;
+        }
+
+        /* LAYOUT 2: PARA 4 PERGUNTAS (GRADE 2x2 AO LADO DO CRONÔMETRO) */
+        .main-container.layout-grid {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            max-width: 1250px;
+            gap: 24px;
+        }
+
+        .perguntas-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            flex: 1;
+            gap: 18px;
+        }
+
+        /* CARTÕES COM TAMANHO E ESPAÇAMENTO AMPLIADOS */
+        .cartao {
+            background-color: #ffffff;
+            padding: 24px 28px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            width: 100%;
+        }
+
+        .cartao h2 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #1e293b;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .botoes-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
         }
 
         button {
-            padding: 10px 15px; margin: 5px; border: none; border-radius: 8px;
-            font-size: 15px; cursor: pointer; transition: 0.2s; font-weight: bold;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
         }
-        button:hover { transform: scale(1.03); }
 
-        .btn-humor { background-color: #e8f0fe; color: #1a73e8; display: inline-block; margin: 4px; }
-        .btn-iniciar { background-color: #34a853; color: white; }
-        .btn-finalizar { background-color: #ea4335; color: white; }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
 
-        .tempo { font-size: 42px; font-weight: bold; color: #202124; margin: 10px 0; }
+        .btn-humor {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .btn-humor:hover {
+            background-color: #bae6fd;
+            color: #075985;
+        }
+
+        /* CARTÃO DO CRONÔMETRO */
+        .cartao-cronometro {
+            padding: 28px;
+        }
+
+        .layout-grid .cartao-cronometro {
+            width: 380px;
+            flex-shrink: 0;
+        }
+
+        .layout-centrado .cartao-cronometro {
+            width: 100%;
+        }
+
+        .cartao-cronometro h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+            display: block;
+            text-align: left;
+            width: 100%;
+        }
+
+        select {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            font-size: 15px;
+            margin-bottom: 16px;
+            width: 100%;
+            outline: none;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .tempo {
+            font-size: 48px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 12px 0;
+            letter-spacing: 1px;
+        }
+
+        .acoes-cronometro {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn-iniciar {
+            background-color: #16a34a;
+            color: white;
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .btn-iniciar:hover {
+            background-color: #15803d;
+        }
+
+        .btn-finalizar {
+            background-color: #dc2626;
+            color: white;
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .btn-finalizar:hover {
+            background-color: #b91c1c;
+        }
     </style>
 </head>
 <body>
@@ -61,21 +224,27 @@
         <p>Sistema de Gestão de Tempo e Bem-estar</p>
     </div>
 
-    <!-- Container onde serão renderizadas TODAS as perguntas ativas (máx 4) -->
-    <div id="containerPerguntasColaborador" style="width: 100%; max-width: 500px;"></div>
+    <!-- Container Dinâmico -->
+    <div id="mainContainer" class="main-container layout-centrado">
+        
+        <!-- Bloco de Perguntas -->
+        <div id="containerPerguntasColaborador" class="perguntas-centradas"></div>
 
-    <!-- Cartão do Cronômetro de Atividades -->
-    <div class="cartao">
-        <h2>Controle de Atividades</h2>
-        <label>Atividade: </label>
-        <select id="selectAtividades">
-            <option>Carregando atividades...</option>
-        </select>
-        
-        <div class="tempo" id="displayTempo">00:00:00</div>
-        
-        <button class="btn-iniciar" onclick="iniciarCronometro()">▶ Iniciar</button>
-        <button class="btn-finalizar" onclick="finalizarCronometro()">⏹ Finalizar</button>
+        <!-- Painel do Cronômetro -->
+        <div class="cartao cartao-cronometro">
+            <h2>Controle de Atividades</h2>
+            <label for="selectAtividades">Atividade Atual:</label>
+            <select id="selectAtividades">
+                <option>Carregando atividades...</option>
+            </select>
+            
+            <div class="tempo" id="displayTempo">00:00:00</div>
+            
+            <div class="acoes-cronometro">
+                <button class="btn-iniciar" onclick="iniciarCronometro()">▶ Iniciar</button>
+                <button class="btn-finalizar" onclick="finalizarCronometro()">⏹ Finalizar</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -87,17 +256,26 @@
             await carregarAtividades();
         }
 
-        // Carrega e renderiza todas as perguntas ativas
         async function carregarPerguntas() {
             try {
                 const response = await fetch('http://localhost:3000/api/perguntas');
                 const perguntas = await response.json();
                 
+                const mainContainer = document.getElementById('mainContainer');
                 const container = document.getElementById('containerPerguntasColaborador');
                 container.innerHTML = '';
 
-                // Filtra as perguntas ativas e limita a 4
+                // Filtra as perguntas ativas e limita ao máximo de 4
                 const ativas = perguntas.filter(p => p.ativa !== false).slice(0, 4);
+
+                // Alterna o layout com base no número de perguntas
+                if (ativas.length === 4) {
+                    mainContainer.className = 'main-container layout-grid';
+                    container.className = 'perguntas-grid-4';
+                } else {
+                    mainContainer.className = 'main-container layout-centrado';
+                    container.className = 'perguntas-centradas';
+                }
 
                 if (ativas.length > 0) {
                     ativas.forEach(pergunta => {
@@ -110,7 +288,7 @@
                         container.innerHTML += `
                             <div class="cartao">
                                 <h2>${pergunta.titulo}</h2>
-                                <div>${botoesRespostas}</div>
+                                <div class="botoes-container">${botoesRespostas}</div>
                             </div>
                         `;
                     });

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TeamPulse - Painel Administrativo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: #f1f5f9; display: flex; height: 100vh; overflow: hidden; }
@@ -109,8 +110,10 @@
 
         button.btn-primary { background: #0284c7; color: #ffffff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
         button.btn-primary:hover { background: #0369a1; }
-        .btn-warning { background: #f59e0b; color: #ffffff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .btn-warning { background: #f59e0b; color: #ffffff; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-warning:hover { background: #d97706; }
         .btn-delete { background: #ef4444; color: #ffffff; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+        .btn-secondary { background: #cbd5e1; color: #334155; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-left: 10px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: #ffffff; border-radius: 8px; overflow: hidden; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #f1f5f9; }
@@ -200,7 +203,10 @@
                                 <option value="admin">Administrador</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn-primary" id="btnSalvarUsuario">Criar Usuário</button>
+                        <div>
+                            <button type="submit" class="btn-primary" id="btnSalvarUsuario">Criar Usuário</button>
+                            <button type="button" class="btn-secondary" id="btnCancelarEdicaoUsuario" style="display:none;" onclick="cancelarEdicaoUsuario()">Cancelar</button>
+                        </div>
                     </form>
                 </div>
 
@@ -236,11 +242,11 @@
 
                         <label style="margin-top: 15px;"><b>Respostas (Até 5 opções)</b></label>
                         <div id="containerOpcoes" style="display: flex; flex-direction: column; gap: 10px; margin: 10px 0;"></div>
-                        <button type="button" class="btn-warning" onclick="adicionarCampoOpcao()" id="btnAdicionarOpcao">+ Adicionar Resposta</button>
+                        <button type="button" class="btn-warning" style="padding: 6px 12px; font-weight: normal;" onclick="adicionarCampoOpcao()" id="btnAdicionarOpcao">+ Adicionar Resposta</button>
                         
                         <div style="margin-top: 20px;">
                             <button type="submit" class="btn-primary" id="btnSalvarPergunta">Salvar Pergunta</button>
-                            <button type="button" id="btnCancelarEdicaoPergunta" style="display:none; background:#cbd5e1; color:#334155; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-left:10px;" onclick="cancelarEdicaoPergunta()">Cancelar</button>
+                            <button type="button" class="btn-secondary" id="btnCancelarEdicaoPergunta" style="display:none;" onclick="cancelarEdicaoPergunta()">Cancelar</button>
                         </div>
                     </form>
                 </div>
@@ -269,7 +275,10 @@
                             <label>Limite de Colaboradores Simultâneos <span style="font-weight:normal; font-size:12px; color:#64748b;">(0 = sem limite)</span></label>
                             <input type="number" id="atvLimite" value="0" min="0" required>
                         </div>
-                        <button type="submit" class="btn-primary" id="btnSalvarAtividade">Adicionar Atividade</button>
+                        <div>
+                            <button type="submit" class="btn-primary" id="btnSalvarAtividade">Adicionar Atividade</button>
+                            <button type="button" class="btn-secondary" id="btnCancelarEdicaoAtividade" style="display:none;" onclick="cancelarEdicaoAtividade()">Cancelar</button>
+                        </div>
                     </form>
                 </div>
 
@@ -290,12 +299,16 @@
                         <div style="flex: 1;"><label>Pergunta</label><select id="filtroPerguntaId"></select></div>
                         <div style="flex: 1;"><label>Início</label><input type="date" id="filtroPergDataInicio"></div>
                         <div style="flex: 1;"><label>Fim</label><input type="date" id="filtroPergDataFim"></div>
-                        <div style="align-self: flex-end;"><button type="button" class="btn-primary" onclick="gerarRelatorioPerguntas()">Filtrar</button></div>
+                        <div style="align-self: flex-end; display: flex; gap: 10px;">
+                            <button type="button" class="btn-primary" onclick="gerarRelatorioPerguntas()">Filtrar</button>
+                            <button type="button" class="btn-warning" onclick="exportarPDF('cardRelatorioPerguntas', 'Relatorio_Perguntas')">Exportar PDF</button>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card" id="cardRelatorioPerguntas">
+                    <h4 style="margin-bottom: 15px;">Relatório de Respostas de Perguntas</h4>
                     <table>
-                        <thead><tr><th>Data</th><th>Colaborador</th><th>Pergunta</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Colaborador</th><th>Pergunta</th><th>Resposta</th></tr></thead>
                         <tbody id="tabelaRelatorioPerguntas"></tbody>
                     </table>
                 </div>
@@ -309,10 +322,14 @@
                         <div style="flex: 1;"><label>Atividade</label><select id="filtroAtivId"></select></div>
                         <div style="flex: 1;"><label>Início</label><input type="date" id="filtroAtivDataInicio"></div>
                         <div style="flex: 1;"><label>Fim</label><input type="date" id="filtroAtivDataFim"></div>
-                        <div style="align-self: flex-end;"><button type="button" class="btn-primary" onclick="gerarRelatorioAtividades()">Filtrar</button></div>
+                        <div style="align-self: flex-end; display: flex; gap: 10px;">
+                            <button type="button" class="btn-primary" onclick="gerarRelatorioAtividades()">Filtrar</button>
+                            <button type="button" class="btn-warning" onclick="exportarPDF('cardRelatorioAtividades', 'Relatorio_Atividades')">Exportar PDF</button>
+                        </div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card" id="cardRelatorioAtividades">
+                    <h4 style="margin-bottom: 15px;">Relatório de Histórico de Atividades</h4>
                     <table>
                         <thead><tr><th>Data</th><th>Colaborador</th><th>Atividade</th><th>Duração (seg)</th></tr></thead>
                         <tbody id="tabelaRelatorioAtividades"></tbody>
@@ -323,7 +340,7 @@
     </div>
 
     <script>
-        const API_URL = 'http://localhost:3000/api';
+        const API_URL = 'https://teampulse-backend.onrender.com/api';
         let listaPerguntasCache = [];
         let listaAtividadesCache = [];
         let opcoesAtuais = [{ texto: '', emoji: '', valor: 1 }];
@@ -360,24 +377,37 @@
             window.location.href = 'index.html';
         }
 
+        function exportarPDF(elementId, nomeArquivo) {
+            const elemento = document.getElementById(elementId);
+            const opt = {
+                margin:       10,
+                filename:     `${nomeArquivo}_${new Date().toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(elemento).save();
+        }
+
         async function carregarDashboard() {
             try {
                 const res = await fetch(`${API_URL}/dashboard/estatisticas`);
                 const stats = await res.json();
 
-                document.getElementById('dashTotalUsuarios').innerText = stats.totalUsuarios;
-                document.getElementById('dashEmAndamentoCount').innerText = stats.emAndamentoCount;
-                document.getElementById('dashRespostasHoje').innerText = stats.totalRespostasHoje;
+                document.getElementById('dashTotalUsuarios').innerText = stats.totalUsuarios || 0;
+                document.getElementById('dashEmAndamentoCount').innerText = stats.emAndamentoCount || 0;
+                document.getElementById('dashRespostasHoje').innerText = stats.totalRespostasHoje || 0;
 
                 const tbody = document.getElementById('tabelaTempoReal');
-                if (stats.atividadesEmAndamento.length === 0) {
+                if (!stats.atividadesEmAndamento || stats.atividadesEmAndamento.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhuma atividade em andamento no momento.</td></tr>`;
                 } else {
                     tbody.innerHTML = stats.atividadesEmAndamento.map(a => `
                         <tr>
                             <td><b>${a.usuarioId ? a.usuarioId.nome : 'Removido'}</b></td>
                             <td>${a.atividadeId ? a.atividadeId.descricao : 'Removida'}</td>
-                            <td>${new Date(a.inicio).toLocaleTimeString()}</td>
+                            <td>${a.inicio ? new Date(a.inicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-'}</td>
                             <td><span class="badge-live">Em Execução</span></td>
                         </tr>
                     `).join('');
@@ -422,71 +452,108 @@
 
         // --- USUÁRIOS ---
         async function carregarUsuarios() {
-            const res = await fetch(`${API_URL}/usuarios`);
-            const usuarios = await res.json();
-            document.getElementById('tabelaUsuarios').innerHTML = usuarios.map(u => `
-                <tr>
-                    <td>${u.nome}</td>
-                    <td>${u.email}</td>
-                    <td><b>${u.tipo.toUpperCase()}</b></td>
-                    <td>
-                        <button class="btn-warning" onclick="prepararEdicaoUsuario('${u._id}', '${u.nome}', '${u.email}', '${u.tipo}')">Editar</button>
-                        <button class="btn-delete" onclick="deletarUsuario('${u._id}')">Excluir</button>
-                    </td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(`${API_URL}/usuarios`);
+                const usuarios = await res.json();
+                document.getElementById('tabelaUsuarios').innerHTML = usuarios.map(u => `
+                    <tr>
+                        <td>${u.nome}</td>
+                        <td>${u.email}</td>
+                        <td><b>${u.tipo ? u.tipo.toUpperCase() : 'COLABORADOR'}</b></td>
+                        <td>
+                            <button class="btn-warning" style="padding: 6px 12px; font-weight: normal;" onclick="prepararEdicaoUsuario('${u._id}', '${u.nome}', '${u.email}', '${u.tipo}')">Editar</button>
+                            <button class="btn-delete" onclick="deletarUsuario('${u._id}')">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('Erro ao carregar usuários', e); }
         }
 
         async function salvarUsuario(e) {
             e.preventDefault();
             const id = document.getElementById('usuarioEditId').value;
+            const senhaVal = document.getElementById('admSenha').value;
+
             const body = {
                 nome: document.getElementById('admNome').value,
                 email: document.getElementById('admEmail').value,
-                senha: document.getElementById('admSenha').value,
                 tipo: document.getElementById('admTipo').value
             };
-            await fetch(id ? `${API_URL}/usuarios/${id}` : `${API_URL}/usuarios`, {
+
+            if (senhaVal || !id) {
+                body.senha = senhaVal;
+            }
+
+            const res = await fetch(id ? `${API_URL}/usuarios/${id}` : `${API_URL}/usuarios`, {
                 method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            document.getElementById('formCadUsuario').reset();
-            document.getElementById('usuarioEditId').value = '';
-            carregarUsuarios();
+
+            if (res.ok) {
+                alert(id ? 'Usuário atualizado com sucesso!' : 'Usuário cadastrado com sucesso!');
+                cancelarEdicaoUsuario();
+                carregarUsuarios();
+            } else {
+                const err = await res.json();
+                alert('Erro: ' + (err.erro || 'Erro ao salvar usuário.'));
+            }
         }
 
         function prepararEdicaoUsuario(id, nome, email, tipo) {
             document.getElementById('usuarioEditId').value = id;
             document.getElementById('admNome').value = nome;
             document.getElementById('admEmail').value = email;
+            document.getElementById('admSenha').value = '';
             document.getElementById('admTipo').value = tipo;
+
+            document.getElementById('tituloFormUsuario').innerText = 'Editar Usuário';
+            document.getElementById('btnSalvarUsuario').innerText = 'Salvar Alterações';
+            document.getElementById('btnCancelarEdicaoUsuario').style.display = 'inline-block';
+        }
+
+        function cancelarEdicaoUsuario() {
+            document.getElementById('usuarioEditId').value = '';
+            document.getElementById('formCadUsuario').reset();
+            document.getElementById('tituloFormUsuario').innerText = 'Cadastrar Novo Usuário';
+            document.getElementById('btnSalvarUsuario').innerText = 'Criar Usuário';
+            document.getElementById('btnCancelarEdicaoUsuario').style.display = 'none';
         }
 
         async function deletarUsuario(id) {
-            if (confirm('Excluir usuário?')) { await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' }); carregarUsuarios(); }
+            if (confirm('Excluir usuário?')) {
+                const res = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    carregarUsuarios();
+                } else {
+                    const err = await res.json();
+                    alert('Erro ao excluir usuário: ' + (err.erro || 'Tente novamente.'));
+                }
+            }
         }
 
         // --- PERGUNTAS & RESPOSTAS ---
         async function carregarPerguntas() {
-            const res = await fetch(`${API_URL}/perguntas`);
-            listaPerguntasCache = await res.json();
-            document.getElementById('tabelaPerguntas').innerHTML = listaPerguntasCache.map(p => `
-                <tr>
-                    <td>
-                        <b>${p.titulo}</b><br>
-                        <small style="color: #64748b;">Respostas: ${p.opcoes ? p.opcoes.map(o => `${o.emoji ? o.emoji + ' ' : ''}${o.texto} (Valor: ${o.valor})`).join(' | ') : 'Sem opções'}</small>
-                    </td>
-                    <td>${p.ativa ? 'Ativa' : 'Inativa'}</td>
-                    <td>
-                        <button class="btn-warning" onclick="prepararEdicaoPergunta('${p._id}')">Editar</button>
-                        <button class="btn-delete" onclick="deletarPergunta('${p._id}')">Excluir</button>
-                    </td>
-                </tr>
-            `).join('');
-            
-            const sel = document.getElementById('filtroPerguntaId');
-            sel.innerHTML = '<option value="">Todas</option>' + listaPerguntasCache.map(p => `<option value="${p._id}">${p.titulo}</option>`).join('');
+            try {
+                const res = await fetch(`${API_URL}/perguntas`);
+                listaPerguntasCache = await res.json();
+                document.getElementById('tabelaPerguntas').innerHTML = listaPerguntasCache.map(p => `
+                    <tr>
+                        <td>
+                            <b>${p.titulo}</b><br>
+                            <small style="color: #64748b;">Respostas: ${p.opcoes ? p.opcoes.map(o => `${o.emoji ? o.emoji + ' ' : ''}${o.texto} (Valor: ${o.valor})`).join(' | ') : 'Sem opções'}</small>
+                        </td>
+                        <td>${p.ativa ? 'Ativa' : 'Inativa'}</td>
+                        <td>
+                            <button class="btn-warning" style="padding: 6px 12px; font-weight: normal;" onclick="prepararEdicaoPergunta('${p._id}')">Editar</button>
+                            <button class="btn-delete" onclick="deletarPergunta('${p._id}')">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+                
+                const sel = document.getElementById('filtroPerguntaId');
+                sel.innerHTML = '<option value="">Todas</option>' + listaPerguntasCache.map(p => `<option value="${p._id}">${p.titulo}</option>`).join('');
+            } catch (e) { console.error('Erro ao carregar perguntas', e); }
         }
 
         function prepararEdicaoPergunta(id) {
@@ -497,7 +564,6 @@
             document.getElementById('pergTitulo').value = p.titulo;
             document.getElementById('pergAtiva').value = p.ativa ? 'true' : 'false';
 
-            // Carrega as opções existentes no formulário
             opcoesAtuais = JSON.parse(JSON.stringify(p.opcoes || []));
             if (opcoesAtuais.length === 0) {
                 opcoesAtuais = [{ texto: '', emoji: '', valor: 1 }];
@@ -549,26 +615,36 @@
         }
 
         async function deletarPergunta(id) {
-            if (confirm('Excluir pergunta?')) { await fetch(`${API_URL}/perguntas/${id}`, { method: 'DELETE' }); carregarPerguntas(); }
+            if (confirm('Excluir pergunta?')) {
+                const res = await fetch(`${API_URL}/perguntas/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    carregarPerguntas();
+                } else {
+                    const err = await res.json();
+                    alert('Erro ao excluir pergunta: ' + (err.erro || 'Tente novamente.'));
+                }
+            }
         }
 
         // --- ATIVIDADES ---
         async function carregarAtividades() {
-            const res = await fetch(`${API_URL}/atividades`);
-            listaAtividadesCache = await res.json();
-            document.getElementById('tabelaAtividades').innerHTML = listaAtividadesCache.map(a => `
-                <tr>
-                    <td>${a.descricao}</td>
-                    <td><b>${a.limiteSimultaneo > 0 ? a.limiteSimultaneo + ' pessoa(s)' : 'Sem limite'}</b></td>
-                    <td>
-                        <button class="btn-warning" onclick="prepararEdicaoAtividade('${a._id}', '${a.descricao}', ${a.limiteSimultaneo})">Editar</button>
-                        <button class="btn-delete" onclick="deletarAtividade('${a._id}')">Excluir</button>
-                    </td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(`${API_URL}/atividades`);
+                listaAtividadesCache = await res.json();
+                document.getElementById('tabelaAtividades').innerHTML = listaAtividadesCache.map(a => `
+                    <tr>
+                        <td>${a.descricao}</td>
+                        <td><b>${a.limiteSimultaneo > 0 ? a.limiteSimultaneo + ' pessoa(s)' : 'Sem limite'}</b></td>
+                        <td>
+                            <button class="btn-warning" style="padding: 6px 12px; font-weight: normal;" onclick="prepararEdicaoAtividade('${a._id}', '${a.descricao}', ${a.limiteSimultaneo})">Editar</button>
+                            <button class="btn-delete" onclick="deletarAtividade('${a._id}')">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
 
-            const sel = document.getElementById('filtroAtivId');
-            sel.innerHTML = '<option value="">Todas</option>' + listaAtividadesCache.map(a => `<option value="${a._id}">${a.descricao}</option>`).join('');
+                const sel = document.getElementById('filtroAtivId');
+                sel.innerHTML = '<option value="">Todas</option>' + listaAtividadesCache.map(a => `<option value="${a._id}">${a.descricao}</option>`).join('');
+            } catch (e) { console.error('Erro ao carregar atividades', e); }
         }
 
         async function salvarAtividade(e) {
@@ -578,66 +654,99 @@
                 descricao: document.getElementById('atvDescricao').value,
                 limiteSimultaneo: Number(document.getElementById('atvLimite').value)
             };
-            await fetch(id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`, {
+
+            const res = await fetch(id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`, {
                 method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
-            document.getElementById('formCadAtividade').reset();
-            document.getElementById('atividadeEditId').value = '';
-            carregarAtividades();
+
+            if (res.ok) {
+                alert(id ? 'Atividade atualizada com sucesso!' : 'Atividade cadastrada com sucesso!');
+                cancelarEdicaoAtividade();
+                carregarAtividades();
+            } else {
+                const err = await res.json();
+                alert('Erro: ' + (err.erro || 'Erro ao salvar atividade.'));
+            }
         }
 
         function prepararEdicaoAtividade(id, desc, limite) {
             document.getElementById('atividadeEditId').value = id;
             document.getElementById('atvDescricao').value = desc;
             document.getElementById('atvLimite').value = limite;
+
+            document.getElementById('tituloFormAtividade').innerText = 'Editar Atividade';
+            document.getElementById('btnSalvarAtividade').innerText = 'Salvar Alterações';
+            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'inline-block';
+        }
+
+        function cancelarEdicaoAtividade() {
+            document.getElementById('atividadeEditId').value = '';
+            document.getElementById('formCadAtividade').reset();
+            document.getElementById('atvLimite').value = '0';
+            document.getElementById('tituloFormAtividade').innerText = 'Nova Atividade';
+            document.getElementById('btnSalvarAtividade').innerText = 'Adicionar Atividade';
+            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'none';
         }
 
         async function deletarAtividade(id) {
-            if (confirm('Excluir atividade?')) { await fetch(`${API_URL}/atividades/${id}`, { method: 'DELETE' }); carregarAtividades(); }
+            if (confirm('Excluir atividade?')) {
+                const res = await fetch(`${API_URL}/atividades/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    carregarAtividades();
+                } else {
+                    const err = await res.json();
+                    alert('Erro ao excluir atividade: ' + (err.erro || 'Tente novamente.'));
+                }
+            }
         }
 
         // --- RELATÓRIOS ---
         async function gerarRelatorioPerguntas() {
-            const res = await fetch(`${API_URL}/relatorios/perguntas`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    itemId: document.getElementById('filtroPerguntaId').value,
-                    dataInicio: document.getElementById('filtroPergDataInicio').value,
-                    dataFim: document.getElementById('filtroPergDataFim').value
-                })
-            });
-            const logs = await res.json();
-            document.getElementById('tabelaRelatorioPerguntas').innerHTML = logs.map(r => `
-                <tr>
-                    <td>${new Date(r.createdAt).toLocaleString()}</td>
-                    <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
-                    <td>${r.perguntaId ? r.perguntaId.titulo : 'Removida'}</td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(`${API_URL}/relatorios/perguntas`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        itemId: document.getElementById('filtroPerguntaId').value,
+                        dataInicio: document.getElementById('filtroPergDataInicio').value,
+                        dataFim: document.getElementById('filtroPergDataFim').value
+                    })
+                });
+                const logs = await res.json();
+                document.getElementById('tabelaRelatorioPerguntas').innerHTML = logs.map(r => `
+                    <tr>
+                        <td>${r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '-'}</td>
+                        <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
+                        <td>${r.perguntaId ? r.perguntaId.titulo : 'Removida'}</td>
+                        <td>${r.resposta || r.respostaTexto || '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('Erro ao gerar relatório de perguntas', e); }
         }
 
         async function gerarRelatorioAtividades() {
-            const res = await fetch(`${API_URL}/relatorios/atividades`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    itemId: document.getElementById('filtroAtivId').value,
-                    dataInicio: document.getElementById('filtroAtivDataInicio').value,
-                    dataFim: document.getElementById('filtroAtivDataFim').value
-                })
-            });
-            const logs = await res.json();
-            document.getElementById('tabelaRelatorioAtividades').innerHTML = logs.map(r => `
-                <tr>
-                    <td>${new Date(r.createdAt).toLocaleString()}</td>
-                    <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
-                    <td>${r.atividadeId ? r.atividadeId.descricao : 'Removida'}</td>
-                    <td>${r.duracaoSegundos || 0}s</td>
-                </tr>
-            `).join('');
+            try {
+                const res = await fetch(`${API_URL}/relatorios/atividades`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        itemId: document.getElementById('filtroAtivId').value,
+                        dataInicio: document.getElementById('filtroAtivDataInicio').value,
+                        dataFim: document.getElementById('filtroAtivDataFim').value
+                    })
+                });
+                const logs = await res.json();
+                document.getElementById('tabelaRelatorioAtividades').innerHTML = logs.map(r => `
+                    <tr>
+                        <td>${r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '-'}</td>
+                        <td>${r.usuarioId ? r.usuarioId.nome : 'Removido'}</td>
+                        <td>${r.atividadeId ? r.atividadeId.descricao : 'Removida'}</td>
+                        <td>${r.duracaoSegundos || 0}s</td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('Erro ao gerar relatório de atividades', e); }
         }
     </script>
 </body>
