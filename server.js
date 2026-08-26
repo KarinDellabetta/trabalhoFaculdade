@@ -42,6 +42,7 @@ const HumorLog = mongoose.models.HumorLog || mongoose.model('HumorLog', HumorLog
 const AtividadeSchema = new mongoose.Schema({
     descricao: { type: String, required: true },
     limiteSimultaneo: { type: Number, default: 0 }, // 0 = Sem limite
+    permitePausa: { type: Boolean, default: true }, // true = pausável | false = contínua
     concluida: { type: Boolean, default: false }
 });
 const Atividade = mongoose.models.Atividade || mongoose.model('Atividade', AtividadeSchema);
@@ -49,7 +50,10 @@ const Atividade = mongoose.models.Atividade || mongoose.model('Atividade', Ativi
 const AtividadeAtivaSchema = new mongoose.Schema({
     usuarioId: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario', required: true, unique: true },
     atividadeId: { type: mongoose.Schema.Types.ObjectId, ref: 'Atividade', required: true },
-    inicio: { type: Date, default: Date.now }
+    inicio: { type: Date, default: Date.now },
+    status: { type: String, enum: ['em_andamento', 'pausado'], default: 'em_andamento' },
+    tempoPausadoSegundos: { type: Number, default: 0 },
+    ultimaPausa: { type: Date }
 });
 const AtividadeAtiva = mongoose.models.AtividadeAtiva || mongoose.model('AtividadeAtiva', AtividadeAtivaSchema);
 
@@ -96,9 +100,9 @@ async function inicializarSistema() {
         const totalAtiv = await Atividade.countDocuments();
         if (totalAtiv === 0) {
             await Atividade.insertMany([
-                { descricao: "Lanche", limiteSimultaneo: 2 },
-                { descricao: "Reunião de alinhamento", limiteSimultaneo: 0 },
-                { descricao: "Treinamento de segurança", limiteSimultaneo: 0 }
+                { descricao: "Lanche", limiteSimultaneo: 2, permitePausa: true },
+                { descricao: "Reunião de alinhamento", limiteSimultaneo: 0, permitePausa: false },
+                { descricao: "Treinamento de segurança", limiteSimultaneo: 0, permitePausa: false }
             ]);
         }
     } catch (err) {
@@ -187,7 +191,7 @@ app.post(['/responder-pergunta', '/api/responder-pergunta'], async (req, res) =>
     }
 });
 
-// --- ROTAS ATIVIDADES & CONTROLE DE SIMULTANEIDADE ---
+// --- ROTAS ATIVIDADES ---
 app.get(['/atividades', '/api/atividades'], async (req, res) => {
     try { res.json(await Atividade.find()); } catch (e) { res.status(500).json({ erro: 'Erro ao buscar atividades' }); }
 });
@@ -203,6 +207,8 @@ app.put(['/atividades/:id', '/api/atividades/:id'], async (req, res) => {
 app.delete(['/atividades/:id', '/api/atividades/:id'], async (req, res) => {
     try { await Atividade.findByIdAndDelete(req.params.id); res.json({ ok: true }); } catch (e) { res.status(500).json({ erro: 'Erro ao excluir atividade' }); }
 });
+
+// --- EXECUÇÃO E CONTROLE DE ATIVIDADES ---
 
 // Iniciar Atividade no Colaborador
 app.post(['/iniciar-atividade', '/api/iniciar-atividade'], async (req, res) => {
@@ -221,12 +227,68 @@ app.post(['/iniciar-atividade', '/api/iniciar-atividade'], async (req, res) => {
         }
 
         await AtividadeAtiva.deleteMany({ usuarioId });
-        const novaSessao = new AtividadeAtiva({ usuarioId, atividadeId, inicio: new Date() });
+        const novaSessao = new AtividadeAtiva({
+            usuarioId,
+            atividadeId,
+            inicio: new Date(),
+            status: 'em_andamento',
+            tempoPausadoSegundos: 0,
+            ultimaPausa: null
+        });
         await novaSessao.save();
 
-        res.status(201).json({ mensagem: 'Atividade iniciada!' });
+        res.status(201).json({ mensagem: 'Atividade iniciada!', sessao: novaSessao });
     } catch (e) {
         res.status(500).json({ erro: 'Erro ao iniciar atividade' });
+    }
+});
+
+// Pausar Atividade (Valida se a atividade permite pausa)
+app.post(['/pausar-atividade', '/api/pausar-atividade'], async (req, res) => {
+    try {
+        const { usuarioId } = req.body;
+        const sessao = await AtividadeAtiva.findOne({ usuarioId }).populate('atividadeId');
+        if (!sessao) return res.status(404).json({ erro: 'Nenhuma atividade ativa encontrada.' });
+
+        if (!sessao.atividadeId.permitePausa) {
+            return res.status(400).json({ erro: 'Esta é uma atividade contínua e não permite pausa!' });
+        }
+
+        if (sessao.status === 'pausado') {
+            return res.status(400).json({ erro: 'A atividade já está pausada.' });
+        }
+
+        sessao.status = 'pausado';
+        sessao.ultimaPausa = new Date();
+        await sessao.save();
+
+        res.json({ mensagem: 'Atividade pausada com sucesso!' });
+    } catch (e) {
+        res.status(500).json({ erro: 'Erro ao pausar atividade' });
+    }
+});
+
+// Retomar Atividade
+app.post(['/retomar-atividade', '/api/retomar-atividade'], async (req, res) => {
+    try {
+        const { usuarioId } = req.body;
+        const sessao = await AtividadeAtiva.findOne({ usuarioId });
+        if (!sessao) return res.status(404).json({ erro: 'Nenhuma atividade ativa encontrada.' });
+
+        if (sessao.status !== 'pausado') {
+            return res.status(400).json({ erro: 'A atividade não está pausada.' });
+        }
+
+        const agora = new Date();
+        const diffSegundos = Math.floor((agora - new Date(sessao.ultimaPausa)) / 1000);
+        sessao.tempoPausadoSegundos = (sessao.tempoPausadoSegundos || 0) + diffSegundos;
+        sessao.status = 'em_andamento';
+        sessao.ultimaPausa = null;
+        await sessao.save();
+
+        res.json({ mensagem: 'Atividade retomada com sucesso!' });
+    } catch (e) {
+        res.status(500).json({ erro: 'Erro ao retomar atividade' });
     }
 });
 
@@ -285,7 +347,6 @@ app.get(['/respostas/relatorio', '/api/respostas/relatorio', '/api/relatorios/pe
 
         const logs = await HumorLog.find(filtro).populate('usuarioId perguntaId').sort({ createdAt: -1 }).lean();
 
-        // Mapeia o texto e emoji da opção selecionada
         const logsFormatados = logs.map(log => {
             let opcaoTexto = '-';
             if (log.perguntaId && Array.isArray(log.perguntaId.opcoes)) {
