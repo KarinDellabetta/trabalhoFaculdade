@@ -12,7 +12,6 @@
         }
 
         body {
-            
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f1f5f9;
             color: #0f172a;
@@ -26,20 +25,20 @@
         }
 
         .btn-sair {
-    background-color: #ef4444;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.2s;
-}
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
 
-.btn-sair:hover {
-    background-color: #dc2626;
-}
+        .btn-sair:hover {
+            background-color: #dc2626;
+        }
     
         .cabecalho {
             text-align: center;
@@ -221,6 +220,18 @@
             background-color: #15803d;
         }
 
+        .btn-pausar {
+            background-color: #f59e0b;
+            color: white;
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        .btn-pausar:hover {
+            background-color: #d97706;
+        }
+
         .btn-finalizar {
             background-color: #dc2626;
             color: white;
@@ -236,8 +247,8 @@
 </head>
 <body>
     <div style="position: absolute; top: 20px; right: 20px;">
-    <button onclick="logout()" class="btn-sair">Sair do Sistema</button>
-</div>
+        <button onclick="logout()" class="btn-sair">Sair do Sistema</button>
+    </div>
     <div class="cabecalho">
         <h1>TeamPulse ⚡</h1>
         <p>Sistema de Gestão de Tempo e Bem-estar</p>
@@ -253,14 +264,15 @@
         <div class="cartao cartao-cronometro">
             <h2>Controle de Atividades</h2>
             <label for="selectAtividades">Atividade Atual:</label>
-            <select id="selectAtividades">
+            <select id="selectAtividades" onchange="verificarPermissaoPausa()">
                 <option>Carregando atividades...</option>
             </select>
             
             <div class="tempo" id="displayTempo">00:00:00</div>
             
             <div class="acoes-cronometro">
-                <button class="btn-iniciar" onclick="iniciarCronometro()">▶ Iniciar</button>
+                <button class="btn-iniciar" id="btnIniciar" onclick="iniciarCronometro()">▶ Iniciar</button>
+                <button class="btn-pausar" id="btnPausar" onclick="alternarPausa()" style="display: none;">⏸ Pausar</button>
                 <button class="btn-finalizar" onclick="finalizarCronometro()">⏹ Finalizar</button>
             </div>
         </div>
@@ -271,6 +283,8 @@
 
         let tempoSegundos = 0;
         let timer = null;
+        let estaEmPausa = false;
+        let listaAtividadesCache = [];
 
         async function inicializarTela() {
             await carregarPerguntas();
@@ -278,9 +292,9 @@
         }
         
         function logout() {
-    localStorage.removeItem('usuario'); // Limpa a sessão salva
-    window.location.href = 'index.html'; // Redireciona para a tela de login
-}
+            localStorage.removeItem('usuarioLogado'); // Limpa a sessão salva
+            window.location.href = 'index.html'; // Redireciona para a tela de login
+        }
 
         async function carregarPerguntas() {
             try {
@@ -365,16 +379,35 @@
         async function carregarAtividades() {
             try {
                 const response = await fetch(`${API_URL}/api/atividades`);
-                const atividades = await response.json();
+                listaAtividadesCache = await response.json();
                 
                 const selectA = document.getElementById('selectAtividades');
                 selectA.innerHTML = '';
 
-                atividades.forEach(ativ => {
+                listaAtividadesCache.forEach(ativ => {
                     selectA.innerHTML += `<option value="${ativ._id}">${ativ.descricao}</option>`;
                 });
+
+                verificarPermissaoPausa();
             } catch (error) {
                 console.error('Erro ao buscar atividades:', error);
+            }
+        }
+
+        function obterAtividadeSelecionada() {
+            const selectA = document.getElementById('selectAtividades');
+            return listaAtividadesCache.find(a => a._id === selectA.value);
+        }
+
+        function verificarPermissaoPausa() {
+            const atividade = obterAtividadeSelecionada();
+            const btnPausar = document.getElementById('btnPausar');
+
+            // Exibe o botão de pausa apenas se a atividade permitir e o cronômetro estiver rodando ou em pausa
+            if (atividade && atividade.permitePausa !== false && (timer || estaEmPausa)) {
+                btnPausar.style.display = 'inline-block';
+            } else {
+                btnPausar.style.display = 'none';
             }
         }
 
@@ -386,7 +419,8 @@
         }
 
         async function iniciarCronometro() {
-            if (timer) return;
+            if (timer || estaEmPausa) return;
+
             const userStr = localStorage.getItem('usuarioLogado');
             if (!userStr) return alert("Erro de autenticação!");
             const usuario = JSON.parse(userStr);
@@ -407,24 +441,50 @@
                     return;
                 }
 
+                selectA.disabled = true; // Desabilita troca enquanto roda
                 timer = setInterval(() => {
                     tempoSegundos++;
                     atualizarDisplay();
                 }, 1000);
+
+                verificarPermissaoPausa();
 
             } catch (err) {
                 alert("Erro ao conectar com o servidor para iniciar atividade.");
             }
         }
 
+        function alternarPausa() {
+            const btnPausar = document.getElementById('btnPausar');
+
+            if (!estaEmPausa) {
+                // Pausar
+                clearInterval(timer);
+                timer = null;
+                estaEmPausa = true;
+                btnPausar.innerText = '▶ Continuar';
+                btnPausar.style.backgroundColor = '#16a34a';
+            } else {
+                // Continuar
+                timer = setInterval(() => {
+                    tempoSegundos++;
+                    atualizarDisplay();
+                }, 1000);
+                estaEmPausa = false;
+                btnPausar.innerText = '⏸ Pausar';
+                btnPausar.style.backgroundColor = '#f59e0b';
+            }
+        }
+
         async function finalizarCronometro() {
-            if (!timer && tempoSegundos === 0) {
+            if (!timer && tempoSegundos === 0 && !estaEmPausa) {
                 alert("Inicie o cronômetro primeiro!");
                 return;
             }
 
             clearInterval(timer);
             timer = null;
+            estaEmPausa = false;
             
             const selectA = document.getElementById('selectAtividades');
             const atividadeId = selectA.value;
@@ -450,8 +510,16 @@
             }
 
             alert(`Atividade "${atividadeNome}" finalizada!\nTempo total: ${tempoFinal}`);
+            
+            // Reseta tela
             tempoSegundos = 0;
+            selectA.disabled = false;
             atualizarDisplay();
+
+            const btnPausar = document.getElementById('btnPausar');
+            btnPausar.innerText = '⏸ Pausar';
+            btnPausar.style.backgroundColor = '#f59e0b';
+            btnPausar.style.display = 'none';
         }
 
         window.onload = inicializarTela;
