@@ -97,7 +97,7 @@
             gap: 18px;
         }
 
-        /* CARTÕES COM TAMANHO E ESPAÇAMENTO AMPLIADOS */
+        /* CARTÕES */
         .cartao {
             background-color: #ffffff;
             padding: 24px 28px;
@@ -272,7 +272,7 @@
             
             <div class="acoes-cronometro">
                 <button class="btn-iniciar" id="btnIniciar" onclick="iniciarCronometro()">▶ Iniciar</button>
-                <button class="btn-pausar" id="btnPausar" onclick="alternarPausa()" style="display: none;">⏸ Pausar</button>
+                <button class="btn-pausar" id="btnPausar" onclick="alternarPausa()">⏸ Pausar</button>
                 <button class="btn-finalizar" onclick="finalizarCronometro()">⏹ Finalizar</button>
             </div>
         </div>
@@ -292,8 +292,8 @@
         }
         
         function logout() {
-            localStorage.removeItem('usuarioLogado'); // Limpa a sessão salva
-            window.location.href = 'index.html'; // Redireciona para a tela de login
+            localStorage.removeItem('usuarioLogado');
+            window.location.href = 'index.html';
         }
 
         async function carregarPerguntas() {
@@ -399,13 +399,28 @@
             return listaAtividadesCache.find(a => a._id === selectA.value);
         }
 
+        // Valida se a atividade permite pausa, cobrindo qualquer padrão de nome de atributo do backend
+        function atividadeEhPausavel(atividade) {
+            if (!atividade) return false;
+            if (typeof atividade.permitePausa === 'boolean') return atividade.permitePausa;
+            if (typeof atividade.pausavel === 'boolean') return atividade.pausavel;
+            if (atividade.tipo) return atividade.tipo.toLowerCase().includes('paus');
+            if (atividade.tipoAtividade) return atividade.tipoAtividade.toLowerCase().includes('paus');
+            return true; // Se não houver campo explicativo, assume pausável
+        }
+
         function verificarPermissaoPausa() {
             const atividade = obterAtividadeSelecionada();
             const btnPausar = document.getElementById('btnPausar');
 
-            // Exibe o botão de pausa apenas se a atividade permitir e o cronômetro estiver rodando ou em pausa
-            if (atividade && atividade.permitePausa !== false && (timer || estaEmPausa)) {
+            if (atividadeEhPausavel(atividade)) {
                 btnPausar.style.display = 'inline-block';
+                
+                // Habilita o clique apenas se a atividade estiver rodando ou em pausa
+                const emExecucao = Boolean(timer || estaEmPausa);
+                btnPausar.disabled = !emExecucao;
+                btnPausar.style.opacity = emExecucao ? '1' : '0.5';
+                btnPausar.style.cursor = emExecucao ? 'pointer' : 'not-allowed';
             } else {
                 btnPausar.style.display = 'none';
             }
@@ -441,7 +456,7 @@
                     return;
                 }
 
-                selectA.disabled = true; // Desabilita troca enquanto roda
+                selectA.disabled = true;
                 timer = setInterval(() => {
                     tempoSegundos++;
                     atualizarDisplay();
@@ -519,7 +534,7 @@
             const btnPausar = document.getElementById('btnPausar');
             btnPausar.innerText = '⏸ Pausar';
             btnPausar.style.backgroundColor = '#f59e0b';
-            btnPausar.style.display = 'none';
+            verificarPermissaoPausa();
         }
 
         window.onload = inicializarTela;
