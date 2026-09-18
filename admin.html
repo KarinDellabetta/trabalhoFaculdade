@@ -364,7 +364,6 @@
 
             setInterval(carregarDashboard, 5000);
             
-            // Carrega os relatórios automaticamente ao abrir a página
             gerarRelatorioPerguntas();
             gerarRelatorioAtividades();
         };
@@ -752,19 +751,16 @@
 
                     let respostaTexto = '-';
 
-                    // 1. Busca por objeto populado
                     const opObj = r.opcaoEscolhida || (typeof r.opcaoId === 'object' ? r.opcaoId : null);
                     if (opObj) {
                         respostaTexto = `${opObj.emoji ? opObj.emoji + ' ' : ''}${opObj.texto || ''}`;
-                    } 
-                    // 2. Procura o opcaoId dentro do array de opcoes da pergunta
-                    else if (r.opcaoId && r.perguntaId && Array.isArray(r.perguntaId.opcoes)) {
+                    } else if (r.opcaoId && r.perguntaId && Array.isArray(r.perguntaId.opcoes)) {
                         const opEncontrada = r.perguntaId.opcoes.find(o => String(o._id) === String(r.opcaoId));
                         if (opEncontrada) {
                             respostaTexto = `${opEncontrada.emoji ? opEncontrada.emoji + ' ' : ''}${opEncontrada.texto || ''}`;
                         }
                     }
-                    // 3. Fallback para outros formatos de campo
+
                     if (respostaTexto === '-' && (r.resposta || r.textoResposta || r.opcaoTexto)) {
                         respostaTexto = r.resposta || r.textoResposta || `${r.opcaoEmoji ? r.opcaoEmoji + ' ' : ''}${r.opcaoTexto}`;
                     }
@@ -829,12 +825,13 @@
                     const dataFmt = h.inicio ? new Date(h.inicio).toLocaleDateString('pt-BR') :
                                     (h.createdAt ? new Date(h.createdAt).toLocaleDateString('pt-BR') : '-');
 
+                    // CORREÇÃO: Ordem exata de acordo com as colunas (Data | Colaborador | Atividade | Duração)
                     return `
                         <tr>
+                            <td>${dataFmt}</td>
                             <td><b>${colaborador}</b></td>
                             <td>${atividade}</td>
                             <td>${duracaoTexto}</td>
-                            <td>${dataFmt}</td>
                         </tr>
                     `;
                 }).join('');
