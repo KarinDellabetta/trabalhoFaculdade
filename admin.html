@@ -751,12 +751,22 @@
                                      r.perguntaTitulo || 'Pergunta';
 
                     let respostaTexto = '-';
-                    if (r.opcaoEscolhida) {
-                        respostaTexto = `${r.opcaoEscolhida.emoji ? r.opcaoEscolhida.emoji + ' ' : ''}${r.opcaoEscolhida.texto || ''}`;
-                    } else if (r.opcaoId && typeof r.opcaoId === 'object') {
-                        respostaTexto = `${r.opcaoId.emoji ? r.opcaoId.emoji + ' ' : ''}${r.opcaoId.texto || ''}`;
-                    } else if (r.resposta) {
-                        respostaTexto = r.resposta;
+
+                    // 1. Busca por objeto populado
+                    const opObj = r.opcaoEscolhida || (typeof r.opcaoId === 'object' ? r.opcaoId : null);
+                    if (opObj) {
+                        respostaTexto = `${opObj.emoji ? opObj.emoji + ' ' : ''}${opObj.texto || ''}`;
+                    } 
+                    // 2. Procura o opcaoId dentro do array de opcoes da pergunta
+                    else if (r.opcaoId && r.perguntaId && Array.isArray(r.perguntaId.opcoes)) {
+                        const opEncontrada = r.perguntaId.opcoes.find(o => String(o._id) === String(r.opcaoId));
+                        if (opEncontrada) {
+                            respostaTexto = `${opEncontrada.emoji ? opEncontrada.emoji + ' ' : ''}${opEncontrada.texto || ''}`;
+                        }
+                    }
+                    // 3. Fallback para outros formatos de campo
+                    if (respostaTexto === '-' && (r.resposta || r.textoResposta || r.opcaoTexto)) {
+                        respostaTexto = r.resposta || r.textoResposta || `${r.opcaoEmoji ? r.opcaoEmoji + ' ' : ''}${r.opcaoTexto}`;
                     }
 
                     const dataFmt = r.criadoEm ? new Date(r.criadoEm).toLocaleDateString('pt-BR') :
