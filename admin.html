@@ -402,7 +402,6 @@
             html2pdf().set(opt).from(elemento).save();
         }
 
-        // Função auxiliar de busca resiliente (tenta com /api/ e sem /api/)
         async function fetchResiliente(endpointComApi, endpointSemApi, options = {}) {
             try {
                 let res = await fetch(`${API_URL}${endpointComApi}`, options);
@@ -745,7 +744,7 @@
             }
         }
 
-        // --- RELATÓRIOS (DESENROLADO E RESILIENTE) ---
+        // --- RELATÓRIOS ---
         async function gerarRelatorioPerguntas() {
             try {
                 const pergId = document.getElementById('filtroPerguntaId')?.value || '';
@@ -760,7 +759,6 @@
                 const res = await fetchResiliente(`/api/relatorios/perguntas${queryParams}`, `/relatorios/perguntas${queryParams}`);
                 const json = await res.json();
                 
-                // Desembrulha array independentemente de como o backend responda
                 const dados = Array.isArray(json) ? json : (json.relatorio || json.dados || json.respostas || json.data || []);
 
                 const tbody = document.getElementById('tabelaRelatorioPerguntas');
@@ -774,9 +772,30 @@
                     const dataFormatada = rawData ? new Date(rawData).toLocaleString('pt-BR') : '-';
                     
                     const nomeUser = r.usuarioId?.nome || r.usuario?.nome || r.nomeUsuario || (typeof r.usuario === 'string' ? r.usuario : 'Desconhecido');
-                    const pergTitulo = r.perguntaId?.titulo || r.pergunta?.titulo || r.tituloPergunta || (typeof r.pergunta === 'string' ? r.pergunta : 'Perg. Removida');
                     
-                    let respTexto = r.opcaoTexto || r.resposta;
+                    // Busca o título da pergunta em todas as propriedades históricas gravadas
+                    let pergTitulo = r.perguntaTitulo || 
+                                     r.tituloPergunta || 
+                                     r.perguntaTexto || 
+                                     r.textoPergunta || 
+                                     r.perguntaId?.titulo || 
+                                     r.pergunta?.titulo || 
+                                     r.titulo || 
+                                     r.nomePergunta || 
+                                     (typeof r.pergunta === 'string' && r.pergunta ? r.pergunta : null);
+
+                    if (!pergTitulo) {
+                        pergTitulo = '<span style="color: #64748b; font-style: italic;">(Pergunta Removida)</span>';
+                    }
+
+                    // Busca o texto da resposta em todas as propriedades históricas gravadas
+                    let respTexto = r.opcaoTexto || 
+                                    r.respostaTexto || 
+                                    r.textoResposta || 
+                                    r.resposta || 
+                                    r.textoOpcao || 
+                                    r.opcaoNome;
+
                     if (!respTexto && r.opcaoId) {
                         if (typeof r.opcaoId === 'object') {
                             respTexto = `${r.opcaoId.emoji ? r.opcaoId.emoji + ' ' : ''}${r.opcaoId.texto || ''}`;
@@ -787,7 +806,7 @@
                     if (!respTexto && r.opcao) {
                         respTexto = typeof r.opcao === 'object' ? `${r.opcao.emoji ? r.opcao.emoji + ' ' : ''}${r.opcao.texto || ''}` : r.opcao;
                     }
-                    if (!respTexto) respTexto = 'Sem resposta';
+                    if (!respTexto) respTexto = '-';
 
                     return `
                         <tr>
@@ -818,7 +837,6 @@
                 const res = await fetchResiliente(`/api/relatorios/atividades${queryParams}`, `/relatorios/atividades${queryParams}`);
                 const json = await res.json();
                 
-                // Desembrulha array independentemente de como o backend responda
                 const dados = Array.isArray(json) ? json : (json.relatorio || json.dados || json.historico || json.data || []);
 
                 const tbody = document.getElementById('tabelaRelatorioAtividades');
@@ -832,7 +850,15 @@
                     const dataFormatada = rawData ? new Date(rawData).toLocaleDateString('pt-BR') : '-';
                     
                     const nomeUser = r.usuarioId?.nome || r.usuario?.nome || r.nomeUsuario || (typeof r.usuario === 'string' ? r.usuario : 'Desconhecido');
-                    const ativDesc = r.atividadeId?.descricao || r.atividade?.descricao || r.descricaoAtividade || (typeof r.atividade === 'string' ? r.atividade : 'Ativ. Removida');
+                    
+                    const ativDesc = r.atividadeDescricao || 
+                                     r.descricaoAtividade || 
+                                     r.atividadeId?.descricao || 
+                                     r.atividade?.descricao || 
+                                     r.atividadeNome || 
+                                     r.nomeAtividade || 
+                                     r.descricao || 
+                                     (typeof r.atividade === 'string' ? r.atividade : '<span style="color: #64748b; font-style: italic;">(Atividade Removida)</span>');
                     
                     let duracaoSegs = r.duracaoSegundos || r.duracao || r.tempoSegundos || r.tempo || 0;
                     let duracaoStr = '-';
