@@ -639,34 +639,78 @@
             try {
                 const res = await fetch(`${API_URL}/atividades`);
                 listaAtividadesCache = await res.json();
-                
-                document.getElementById('tabelaAtividades').innerHTML = listaAtividadesCache.map(a => `
-                    <tr>
-                        <td>${a.descricao}</td>
-                        <td>${a.limite_simultaneo === 0 || !a.limite_simultaneo ? 'Sem limite' : a.limite_simultaneo}</td>
-                        <td>${a.permite_pausa !== false ? 'Pausável' : 'Contínua'}</td>
-                        <td>
-                            <button class="btn-warning" style="padding: 6px 12px; font-weight: normal;" onclick="prepararEdicaoAtividade('${a._id}')">Editar</button>
-                            <button class="btn-delete" onclick="deletarAtividade('${a._id}')">Excluir</button>
-                        </td>
-                    </tr>
-                `).join('');
+
+                document.getElementById('tabelaAtividades').innerHTML = listaAtividadesCache.map(a => {
+                    const lim = (a.limiteSimultaneo !== undefined && a.limiteSimultaneo > 0) ? a.limiteSimultaneo :
+                                (a.limite !== undefined && a.limite > 0) ? a.limite :
+                                (a.limiteColaboradores !== undefined && a.limiteColaboradores > 0) ? a.limiteColaboradores :
+                                (a.maxSimultaneo !== undefined && a.maxSimultaneo > 0) ? a.maxSimultaneo : 0;
+
+                    const limiteTexto = lim > 0 ? `${lim} colaborador(es)` : 'Sem limite';
+                    const permitePausa = (a.permitePausa !== undefined) ? a.permitePausa : (a.pausavel !== undefined ? a.pausavel : true);
+                    const tipoTexto = permitePausa ? 'Pausável' : 'Contínua';
+
+                    return `
+                        <tr>
+                            <td>${a.descricao}</td>
+                            <td><b>${limiteTexto}</b></td>
+                            <td>${tipoTexto}</td>
+                            <td>
+                                <button class="btn-warning" style="padding: 6px 12px; font-weight: normal;" onclick="prepararEdicaoAtividade('${a._id}')">Editar</button>
+                                <button class="btn-delete" onclick="deletarAtividade('${a._id}')">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
 
                 const sel = document.getElementById('filtroAtivId');
                 if (sel) {
-                    sel.innerHTML = '<option value="">Todas</option>' + 
-                        listaAtividadesCache.map(a => `<option value="${a._id}">${a.descricao}</option>`).join('');
+                    sel.innerHTML = '<option value="">Todas</option>' + listaAtividadesCache.map(a => `<option value="${a._id}">${a.descricao}</option>`).join('');
                 }
             } catch (e) { console.error('Erro ao carregar atividades', e); }
+        }
+
+        function prepararEdicaoAtividade(id) {
+            const a = listaAtividadesCache.find(item => item._id === id);
+            if (!a) return;
+
+            document.getElementById('atividadeEditId').value = a._id;
+            document.getElementById('atvDescricao').value = a.descricao || '';
+            
+            const lim = (a.limiteSimultaneo !== undefined) ? a.limiteSimultaneo :
+                        (a.limite !== undefined) ? a.limite :
+                        (a.limiteColaboradores !== undefined) ? a.limiteColaboradores :
+                        (a.maxSimultaneo !== undefined) ? a.maxSimultaneo : 0;
+            
+            document.getElementById('atvLimite').value = lim;
+            document.getElementById('chkPermitePausa').checked = (a.permitePausa !== undefined) ? a.permitePausa : (a.pausavel !== undefined ? a.pausavel : true);
+
+            document.getElementById('tituloFormAtividade').innerText = 'Editar Atividade';
+            document.getElementById('btnSalvarAtividade').innerText = 'Salvar Alterações';
+            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'inline-block';
+        }
+
+        function cancelarEdicaoAtividade() {
+            document.getElementById('atividadeEditId').value = '';
+            document.getElementById('formCadAtividade').reset();
+            document.getElementById('tituloFormAtividade').innerText = 'Nova Atividade';
+            document.getElementById('btnSalvarAtividade').innerText = 'Adicionar Atividade';
+            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'none';
         }
 
         async function salvarAtividade(e) {
             e.preventDefault();
             const id = document.getElementById('atividadeEditId').value;
+            const limVal = Number(document.getElementById('atvLimite').value) || 0;
+            const permitePausaVal = document.getElementById('chkPermitePausa').checked;
+
             const body = {
                 descricao: document.getElementById('atvDescricao').value,
-                limite_simultaneo: Number(document.getElementById('atvLimite').value),
-                permite_pausa: document.getElementById('chkPermitePausa').checked
+                limite: limVal,
+                limiteSimultaneo: limVal,
+                limiteColaboradores: limVal,
+                permitePausa: permitePausaVal,
+                pausavel: permitePausaVal
             };
 
             const url = id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`;
@@ -688,28 +732,6 @@
             }
         }
 
-        function prepararEdicaoAtividade(id) {
-            const a = listaAtividadesCache.find(item => item._id === id);
-            if (!a) return;
-
-            document.getElementById('atividadeEditId').value = a._id;
-            document.getElementById('atvDescricao').value = a.descricao;
-            document.getElementById('atvLimite').value = a.limite_simultaneo || 0;
-            document.getElementById('chkPermitePausa').checked = a.permite_pausa !== false;
-
-            document.getElementById('tituloFormAtividade').innerText = 'Editar Atividade';
-            document.getElementById('btnSalvarAtividade').innerText = 'Salvar Alterações';
-            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'inline-block';
-        }
-
-        function cancelarEdicaoAtividade() {
-            document.getElementById('atividadeEditId').value = '';
-            document.getElementById('formCadAtividade').reset();
-            document.getElementById('tituloFormAtividade').innerText = 'Nova Atividade';
-            document.getElementById('btnSalvarAtividade').innerText = 'Adicionar Atividade';
-            document.getElementById('btnCancelarEdicaoAtividade').style.display = 'none';
-        }
-
         async function deletarAtividade(id) {
             if (confirm('Excluir atividade?')) {
                 const res = await fetch(`${API_URL}/atividades/${id}`, { method: 'DELETE' });
@@ -719,125 +741,86 @@
 
         // --- RELATÓRIOS ---
         async function gerarRelatorioPerguntas() {
-            const perguntaId = document.getElementById('filtroPerguntaId').value;
-            const dataInicio = document.getElementById('filtroPergDataInicio').value;
-            const dataFim = document.getElementById('filtroPergDataFim').value;
-
-            let queryParams = new URLSearchParams();
-            if (perguntaId) queryParams.append('perguntaId', perguntaId);
-            if (dataInicio) queryParams.append('dataInicio', dataInicio);
-            if (dataFim) queryParams.append('dataFim', dataFim);
-
             try {
-                let res = await fetch(`${API_URL}/respostas?${queryParams.toString()}`);
-                if (!res.ok) res = await fetch(`${API_URL}/api/relatorios/perguntas?${queryParams.toString()}`);
-                
+                const pergId = document.getElementById('filtroPerguntaId')?.value || '';
+                const inicio = document.getElementById('filtroPergDataInicio')?.value || '';
+                const fim = document.getElementById('filtroPergDataFim')?.value || '';
+
+                let url = `${API_URL}/relatorios/perguntas?1=1`;
+                if (pergId) url += `&perguntaId=${pergId}`;
+                if (inicio) url += `&dataInicio=${inicio}`;
+                if (fim) url += `&dataFim=${fim}`;
+
+                const res = await fetch(url);
                 const dados = await res.json();
+
                 const tbody = document.getElementById('tabelaRelatorioPerguntas');
-                
                 if (!dados || dados.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = dados.map(r => {
-                    const colaborador = (typeof r.usuarioId === 'object' && r.usuarioId?.nome) ? r.usuarioId.nome :
-                                        (typeof r.usuario === 'object' && r.usuario?.nome) ? r.usuario.nome :
-                                        r.usuarioNome || r.nomeUsuario || 'Colaborador';
-
-                    const pergunta = (typeof r.perguntaId === 'object' && r.perguntaId?.titulo) ? r.perguntaId.titulo :
-                                     (typeof r.pergunta === 'object' && r.pergunta?.titulo) ? r.pergunta.titulo :
-                                     r.perguntaTitulo || 'Pergunta';
-
-                    let respostaTexto = '-';
-
-                    const opObj = r.opcaoEscolhida || (typeof r.opcaoId === 'object' ? r.opcaoId : null);
-                    if (opObj) {
-                        respostaTexto = `${opObj.emoji ? opObj.emoji + ' ' : ''}${opObj.texto || ''}`;
-                    } else if (r.opcaoId && r.perguntaId && Array.isArray(r.perguntaId.opcoes)) {
-                        const opEncontrada = r.perguntaId.opcoes.find(o => String(o._id) === String(r.opcaoId));
-                        if (opEncontrada) {
-                            respostaTexto = `${opEncontrada.emoji ? opEncontrada.emoji + ' ' : ''}${opEncontrada.texto || ''}`;
-                        }
-                    }
-
-                    if (respostaTexto === '-' && (r.resposta || r.textoResposta || r.opcaoTexto)) {
-                        respostaTexto = r.resposta || r.textoResposta || `${r.opcaoEmoji ? r.opcaoEmoji + ' ' : ''}${r.opcaoTexto}`;
-                    }
-
-                    const dataFmt = r.criadoEm ? new Date(r.criadoEm).toLocaleDateString('pt-BR') :
-                                    (r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '-');
+                    const dataFormatada = r.data ? new Date(r.data).toLocaleString('pt-BR') : (r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '-');
+                    const nomeUser = r.usuarioId?.nome || r.usuario?.nome || 'Desconhecido';
+                    const pergTitulo = r.perguntaId?.titulo || r.pergunta?.titulo || 'Perg. Removida';
+                    const respTexto = r.opcaoTexto || (r.opcaoId?.texto ? `${r.opcaoId.emoji ? r.opcaoId.emoji + ' ' : ''}${r.opcaoId.texto}` : 'Sem resposta');
 
                     return `
                         <tr>
-                            <td>${dataFmt}</td>
-                            <td><b>${colaborador}</b></td>
-                            <td>${pergunta}</td>
-                            <td>${respostaTexto}</td>
+                            <td>${dataFormatada}</td>
+                            <td>${nomeUser}</td>
+                            <td>${pergTitulo}</td>
+                            <td>${respTexto}</td>
                         </tr>
                     `;
                 }).join('');
-            } catch (e) {
-                console.error('Erro ao gerar relatório de perguntas', e);
-            }
+            } catch (e) { console.error('Erro ao gerar relatório de perguntas', e); }
         }
 
         async function gerarRelatorioAtividades() {
-            const atividadeId = document.getElementById('filtroAtivId').value;
-            const dataInicio = document.getElementById('filtroAtivDataInicio').value;
-            const dataFim = document.getElementById('filtroAtivDataFim').value;
-
-            let queryParams = new URLSearchParams();
-            if (atividadeId) queryParams.append('atividadeId', atividadeId);
-            if (dataInicio) queryParams.append('dataInicio', dataInicio);
-            if (dataFim) queryParams.append('dataFim', dataFim);
-
             try {
-                let res = await fetch(`${API_URL}/historico?${queryParams.toString()}`);
-                if (!res.ok) res = await fetch(`${API_URL}/api/relatorios/atividades?${queryParams.toString()}`);
+                const ativId = document.getElementById('filtroAtivId')?.value || '';
+                const inicio = document.getElementById('filtroAtivDataInicio')?.value || '';
+                const fim = document.getElementById('filtroAtivDataFim')?.value || '';
 
+                let url = `${API_URL}/relatorios/atividades?1=1`;
+                if (ativId) url += `&atividadeId=${ativId}`;
+                if (inicio) url += `&dataInicio=${inicio}`;
+                if (fim) url += `&dataFim=${fim}`;
+
+                const res = await fetch(url);
                 const dados = await res.json();
-                const tbody = document.getElementById('tabelaRelatorioAtividades');
 
+                const tbody = document.getElementById('tabelaRelatorioAtividades');
                 if (!dados || dados.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
                     return;
                 }
 
-                tbody.innerHTML = dados.map(h => {
-                    const colaborador = (typeof h.usuarioId === 'object' && h.usuarioId?.nome) ? h.usuarioId.nome :
-                                        (typeof h.usuario === 'object' && h.usuario?.nome) ? h.usuario.nome :
-                                        h.usuarioNome || h.nomeUsuario || 'Colaborador';
-
-                    const atividade = (typeof h.atividadeId === 'object' && h.atividadeId?.descricao) ? h.atividadeId.descricao :
-                                      (typeof h.atividade === 'object' && h.atividade?.descricao) ? h.atividade.descricao :
-                                      h.atividadeNome || h.descricaoAtividade || 'Atividade';
-
-                    let duracaoTexto = '-';
-                    const segs = h.duracaoSegundos || h.duracao || (h.fim && h.inicio ? Math.round((new Date(h.fim) - new Date(h.inicio)) / 1000) : 0);
-                    if (segs) {
-                        const hrs = String(Math.floor(segs / 3600)).padStart(2, '0');
-                        const mins = String(Math.floor((segs % 3600) / 60)).padStart(2, '0');
-                        const s = String(segs % 60).padStart(2, '0');
-                        duracaoTexto = `${hrs}:${mins}:${s}`;
+                tbody.innerHTML = dados.map(r => {
+                    const dataFormatada = r.inicio ? new Date(r.inicio).toLocaleDateString('pt-BR') : (r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '-');
+                    const nomeUser = r.usuarioId?.nome || r.usuario?.nome || 'Desconhecido';
+                    const ativDesc = r.atividadeId?.descricao || r.atividade?.descricao || 'Ativ. Removida';
+                    
+                    let duracaoStr = '-';
+                    if (r.duracaoSegundos) {
+                        const hrs = Math.floor(r.duracaoSegundos / 3600);
+                        const mins = Math.floor((r.duracaoSegundos % 3600) / 60);
+                        const segs = r.duracaoSegundos % 60;
+                        duracaoStr = `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(segs).padStart(2,'0')}`;
                     }
 
-                    const dataFmt = h.inicio ? new Date(h.inicio).toLocaleDateString('pt-BR') :
-                                    (h.createdAt ? new Date(h.createdAt).toLocaleDateString('pt-BR') : '-');
-
-                    // CORREÇÃO: Ordem exata de acordo com as colunas (Data | Colaborador | Atividade | Duração)
                     return `
                         <tr>
-                            <td>${dataFmt}</td>
-                            <td><b>${colaborador}</b></td>
-                            <td>${atividade}</td>
-                            <td>${duracaoTexto}</td>
+                            <td>${dataFormatada}</td>
+                            <td>${nomeUser}</td>
+                            <td>${ativDesc}</td>
+                            <td>${duracaoStr}</td>
                         </tr>
                     `;
                 }).join('');
-            } catch (e) {
-                console.error('Erro ao gerar relatório de atividades', e);
-            }
+            } catch (e) { console.error('Erro ao gerar relatório de atividades', e); }
         }
     </script>
 </body>
