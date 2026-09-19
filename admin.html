@@ -402,9 +402,20 @@
             html2pdf().set(opt).from(elemento).save();
         }
 
+        // Função auxiliar de busca resiliente (tenta com /api/ e sem /api/)
+        async function fetchResiliente(endpointComApi, endpointSemApi, options = {}) {
+            try {
+                let res = await fetch(`${API_URL}${endpointComApi}`, options);
+                if (res.ok) return res;
+                return await fetch(`${API_URL}${endpointSemApi}`, options);
+            } catch (e) {
+                return await fetch(`${API_URL}${endpointSemApi}`, options);
+            }
+        }
+
         async function carregarDashboard() {
             try {
-                const res = await fetch(`${API_URL}/dashboard/estatisticas`);
+                const res = await fetchResiliente('/api/dashboard/estatisticas', '/dashboard/estatisticas');
                 const stats = await res.json();
 
                 document.getElementById('dashTotalUsuarios').innerText = stats.totalUsuarios || 0;
@@ -469,7 +480,7 @@
         // --- USUÁRIOS ---
         async function carregarUsuarios() {
             try {
-                const res = await fetch(`${API_URL}/usuarios`);
+                const res = await fetchResiliente('/api/usuarios', '/usuarios');
                 const usuarios = await res.json();
                 document.getElementById('tabelaUsuarios').innerHTML = usuarios.map(u => `
                     <tr>
@@ -496,11 +507,10 @@
                 tipo: document.getElementById('admTipo').value
             };
 
-            if (senhaVal || !id) {
-                body.senha = senhaVal;
-            }
+            if (senhaVal || !id) body.senha = senhaVal;
 
-            const res = await fetch(id ? `${API_URL}/usuarios/${id}` : `${API_URL}/usuarios`, {
+            const path = id ? `/usuarios/${id}` : '/usuarios';
+            const res = await fetchResiliente(`/api${path}`, path, {
                 method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -538,7 +548,7 @@
 
         async function deletarUsuario(id) {
             if (confirm('Excluir usuário?')) {
-                const res = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
+                const res = await fetchResiliente(`/api/usuarios/${id}`, `/usuarios/${id}`, { method: 'DELETE' });
                 if (res.ok) carregarUsuarios();
             }
         }
@@ -546,7 +556,7 @@
         // --- PERGUNTAS & RESPOSTAS ---
         async function carregarPerguntas() {
             try {
-                const res = await fetch(`${API_URL}/perguntas`);
+                const res = await fetchResiliente('/api/perguntas', '/perguntas');
                 listaPerguntasCache = await res.json();
                 document.getElementById('tabelaPerguntas').innerHTML = listaPerguntasCache.map(p => `
                     <tr>
@@ -608,11 +618,9 @@
                 opcoes: opcoesAtuais
             };
 
-            const url = id ? `${API_URL}/perguntas/${id}` : `${API_URL}/perguntas`;
-            const method = id ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
+            const path = id ? `/perguntas/${id}` : '/perguntas';
+            const res = await fetchResiliente(`/api${path}`, path, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
@@ -629,7 +637,7 @@
 
         async function deletarPergunta(id) {
             if (confirm('Excluir pergunta?')) {
-                const res = await fetch(`${API_URL}/perguntas/${id}`, { method: 'DELETE' });
+                const res = await fetchResiliente(`/api/perguntas/${id}`, `/perguntas/${id}`, { method: 'DELETE' });
                 if (res.ok) carregarPerguntas();
             }
         }
@@ -637,7 +645,7 @@
         // --- ATIVIDADES ---
         async function carregarAtividades() {
             try {
-                const res = await fetch(`${API_URL}/atividades`);
+                const res = await fetchResiliente('/api/atividades', '/atividades');
                 listaAtividadesCache = await res.json();
 
                 document.getElementById('tabelaAtividades').innerHTML = listaAtividadesCache.map(a => {
@@ -713,11 +721,9 @@
                 pausavel: permitePausaVal
             };
 
-            const url = id ? `${API_URL}/atividades/${id}` : `${API_URL}/atividades`;
-            const method = id ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
+            const path = id ? `/atividades/${id}` : '/atividades';
+            const res = await fetchResiliente(`/api${path}`, path, {
+                method: id ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
@@ -734,48 +740,68 @@
 
         async function deletarAtividade(id) {
             if (confirm('Excluir atividade?')) {
-                const res = await fetch(`${API_URL}/atividades/${id}`, { method: 'DELETE' });
+                const res = await fetchResiliente(`/api/atividades/${id}`, `/atividades/${id}`, { method: 'DELETE' });
                 if (res.ok) carregarAtividades();
             }
         }
 
-        // --- RELATÓRIOS ---
+        // --- RELATÓRIOS (DESENROLADO E RESILIENTE) ---
         async function gerarRelatorioPerguntas() {
             try {
                 const pergId = document.getElementById('filtroPerguntaId')?.value || '';
                 const inicio = document.getElementById('filtroPergDataInicio')?.value || '';
                 const fim = document.getElementById('filtroPergDataFim')?.value || '';
 
-                let url = `${API_URL}/relatorios/perguntas?1=1`;
-                if (pergId) url += `&perguntaId=${pergId}`;
-                if (inicio) url += `&dataInicio=${inicio}`;
-                if (fim) url += `&dataFim=${fim}`;
+                let queryParams = `?1=1`;
+                if (pergId) queryParams += `&perguntaId=${pergId}`;
+                if (inicio) queryParams += `&dataInicio=${inicio}`;
+                if (fim) queryParams += `&dataFim=${fim}`;
 
-                const res = await fetch(url);
-                const dados = await res.json();
+                const res = await fetchResiliente(`/api/relatorios/perguntas${queryParams}`, `/relatorios/perguntas${queryParams}`);
+                const json = await res.json();
+                
+                // Desembrulha array independentemente de como o backend responda
+                const dados = Array.isArray(json) ? json : (json.relatorio || json.dados || json.respostas || json.data || []);
 
                 const tbody = document.getElementById('tabelaRelatorioPerguntas');
-                if (!dados || dados.length === 0) {
+                if (!Array.isArray(dados) || dados.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = dados.map(r => {
-                    const dataFormatada = r.data ? new Date(r.data).toLocaleString('pt-BR') : (r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '-');
-                    const nomeUser = r.usuarioId?.nome || r.usuario?.nome || 'Desconhecido';
-                    const pergTitulo = r.perguntaId?.titulo || r.pergunta?.titulo || 'Perg. Removida';
-                    const respTexto = r.opcaoTexto || (r.opcaoId?.texto ? `${r.opcaoId.emoji ? r.opcaoId.emoji + ' ' : ''}${r.opcaoId.texto}` : 'Sem resposta');
+                    const rawData = r.data || r.createdAt || r.dataResposta || r.dataHora;
+                    const dataFormatada = rawData ? new Date(rawData).toLocaleString('pt-BR') : '-';
+                    
+                    const nomeUser = r.usuarioId?.nome || r.usuario?.nome || r.nomeUsuario || (typeof r.usuario === 'string' ? r.usuario : 'Desconhecido');
+                    const pergTitulo = r.perguntaId?.titulo || r.pergunta?.titulo || r.tituloPergunta || (typeof r.pergunta === 'string' ? r.pergunta : 'Perg. Removida');
+                    
+                    let respTexto = r.opcaoTexto || r.resposta;
+                    if (!respTexto && r.opcaoId) {
+                        if (typeof r.opcaoId === 'object') {
+                            respTexto = `${r.opcaoId.emoji ? r.opcaoId.emoji + ' ' : ''}${r.opcaoId.texto || ''}`;
+                        } else {
+                            respTexto = r.opcaoId;
+                        }
+                    }
+                    if (!respTexto && r.opcao) {
+                        respTexto = typeof r.opcao === 'object' ? `${r.opcao.emoji ? r.opcao.emoji + ' ' : ''}${r.opcao.texto || ''}` : r.opcao;
+                    }
+                    if (!respTexto) respTexto = 'Sem resposta';
 
                     return `
                         <tr>
                             <td>${dataFormatada}</td>
-                            <td>${nomeUser}</td>
+                            <td><b>${nomeUser}</b></td>
                             <td>${pergTitulo}</td>
                             <td>${respTexto}</td>
                         </tr>
                     `;
                 }).join('');
-            } catch (e) { console.error('Erro ao gerar relatório de perguntas', e); }
+            } catch (e) {
+                console.error('Erro ao gerar relatório de perguntas', e);
+                document.getElementById('tabelaRelatorioPerguntas').innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+            }
         }
 
         async function gerarRelatorioAtividades() {
@@ -784,43 +810,52 @@
                 const inicio = document.getElementById('filtroAtivDataInicio')?.value || '';
                 const fim = document.getElementById('filtroAtivDataFim')?.value || '';
 
-                let url = `${API_URL}/relatorios/atividades?1=1`;
-                if (ativId) url += `&atividadeId=${ativId}`;
-                if (inicio) url += `&dataInicio=${inicio}`;
-                if (fim) url += `&dataFim=${fim}`;
+                let queryParams = `?1=1`;
+                if (ativId) queryParams += `&atividadeId=${ativId}`;
+                if (inicio) queryParams += `&dataInicio=${inicio}`;
+                if (fim) queryParams += `&dataFim=${fim}`;
 
-                const res = await fetch(url);
-                const dados = await res.json();
+                const res = await fetchResiliente(`/api/relatorios/atividades${queryParams}`, `/relatorios/atividades${queryParams}`);
+                const json = await res.json();
+                
+                // Desembrulha array independentemente de como o backend responda
+                const dados = Array.isArray(json) ? json : (json.relatorio || json.dados || json.historico || json.data || []);
 
                 const tbody = document.getElementById('tabelaRelatorioAtividades');
-                if (!dados || dados.length === 0) {
+                if (!Array.isArray(dados) || dados.length === 0) {
                     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
                     return;
                 }
 
                 tbody.innerHTML = dados.map(r => {
-                    const dataFormatada = r.inicio ? new Date(r.inicio).toLocaleDateString('pt-BR') : (r.createdAt ? new Date(r.createdAt).toLocaleDateString('pt-BR') : '-');
-                    const nomeUser = r.usuarioId?.nome || r.usuario?.nome || 'Desconhecido';
-                    const ativDesc = r.atividadeId?.descricao || r.atividade?.descricao || 'Ativ. Removida';
+                    const rawData = r.inicio || r.createdAt || r.data || r.dataInicio;
+                    const dataFormatada = rawData ? new Date(rawData).toLocaleDateString('pt-BR') : '-';
                     
+                    const nomeUser = r.usuarioId?.nome || r.usuario?.nome || r.nomeUsuario || (typeof r.usuario === 'string' ? r.usuario : 'Desconhecido');
+                    const ativDesc = r.atividadeId?.descricao || r.atividade?.descricao || r.descricaoAtividade || (typeof r.atividade === 'string' ? r.atividade : 'Ativ. Removida');
+                    
+                    let duracaoSegs = r.duracaoSegundos || r.duracao || r.tempoSegundos || r.tempo || 0;
                     let duracaoStr = '-';
-                    if (r.duracaoSegundos) {
-                        const hrs = Math.floor(r.duracaoSegundos / 3600);
-                        const mins = Math.floor((r.duracaoSegundos % 3600) / 60);
-                        const segs = r.duracaoSegundos % 60;
+                    if (duracaoSegs) {
+                        const hrs = Math.floor(duracaoSegs / 3600);
+                        const mins = Math.floor((duracaoSegs % 3600) / 60);
+                        const segs = duracaoSegs % 60;
                         duracaoStr = `${String(hrs).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(segs).padStart(2,'0')}`;
                     }
 
                     return `
                         <tr>
                             <td>${dataFormatada}</td>
-                            <td>${nomeUser}</td>
+                            <td><b>${nomeUser}</b></td>
                             <td>${ativDesc}</td>
                             <td>${duracaoStr}</td>
                         </tr>
                     `;
                 }).join('');
-            } catch (e) { console.error('Erro ao gerar relatório de atividades', e); }
+            } catch (e) {
+                console.error('Erro ao gerar relatório de atividades', e);
+                document.getElementById('tabelaRelatorioAtividades').innerHTML = `<tr><td colspan="4" style="text-align:center;">Nenhum registro encontrado.</td></tr>`;
+            }
         }
     </script>
 </body>
