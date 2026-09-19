@@ -18,10 +18,10 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            padding: 20px;
+            justify-content: flex-start;
+            min-height: 100vh;
+            overflow-y: auto;
+            padding: 15px 20px;
         }
 
         .btn-sair {
@@ -42,67 +42,62 @@
     
         .cabecalho {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 16px;
+            margin-top: 5px;
         }
 
         .cabecalho h1 {
             color: #0284c7;
-            font-size: 32px;
-            margin-bottom: 6px;
+            font-size: 26px;
+            margin-bottom: 2px;
             font-weight: 800;
         }
 
         .cabecalho p {
             color: #64748b;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
         }
 
         /* CONTAINER PRINCIPAL DILATÁVEL */
         .main-container {
             width: 100%;
+            max-width: 1150px;
             transition: all 0.3s ease;
         }
 
-        /* LAYOUT 1: PARA 1 A 3 PERGUNTAS (CENTRALIZADO EM COLUNA) */
-        .main-container.layout-centrado {
+        /* LAYOUT 1 PERGUNTA: Centralizado em coluna */
+        .main-container.layout-1-pergunta {
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 680px;
+            max-width: 600px;
+            gap: 14px;
+        }
+
+        /* LAYOUT MÚLTIPLAS PERGUNTAS (2 ou 3): Lado a Lado no Widescreen */
+        .main-container.layout-multiplas {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: center;
             gap: 20px;
         }
 
-        .perguntas-centradas {
+        /* COLUNA DAS PERGUNTAS */
+        .perguntas-coluna {
             display: flex;
             flex-direction: column;
-            width: 100%;
-            gap: 16px;
-        }
-
-        /* LAYOUT 2: PARA 4 PERGUNTAS (GRADE 2x2 AO LADO DO CRONÔMETRO) */
-        .main-container.layout-grid {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            max-width: 1250px;
-            gap: 24px;
-        }
-
-        .perguntas-grid-4 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
             flex: 1;
-            gap: 18px;
+            gap: 12px;
         }
 
-        /* CARTÕES */
+        /* CARTÕES COMPACTOS */
         .cartao {
             background-color: #ffffff;
-            padding: 24px 28px;
-            border-radius: 16px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -113,25 +108,25 @@
         }
 
         .cartao h2 {
-            font-size: 18px;
-            margin-bottom: 16px;
+            font-size: 15px;
+            margin-bottom: 10px;
             color: #1e293b;
             font-weight: 700;
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         .botoes-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
         }
 
         button {
-            padding: 10px 20px;
+            padding: 8px 14px;
             border: none;
-            border-radius: 10px;
-            font-size: 15px;
+            border-radius: 8px;
+            font-size: 13px;
             cursor: pointer;
             transition: all 0.2s ease;
             font-weight: 600;
@@ -154,39 +149,39 @@
 
         /* CARTÃO DO CRONÔMETRO */
         .cartao-cronometro {
-            padding: 28px;
+            padding: 18px 22px;
         }
 
-        .layout-grid .cartao-cronometro {
-            width: 380px;
+        .layout-multiplas .cartao-cronometro {
+            width: 360px;
             flex-shrink: 0;
         }
 
-        .layout-centrado .cartao-cronometro {
+        .layout-1-pergunta .cartao-cronometro {
             width: 100%;
         }
 
         .cartao-cronometro h2 {
-            font-size: 20px;
-            margin-bottom: 16px;
+            font-size: 17px;
+            margin-bottom: 12px;
         }
 
         label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #475569;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: block;
             text-align: left;
             width: 100%;
         }
 
         select {
-            padding: 12px;
-            border-radius: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
             border: 1px solid #cbd5e1;
-            font-size: 15px;
-            margin-bottom: 16px;
+            font-size: 14px;
+            margin-bottom: 12px;
             width: 100%;
             outline: none;
             background-color: #f8fafc;
@@ -194,16 +189,16 @@
         }
 
         .tempo {
-            font-size: 48px;
+            font-size: 38px;
             font-weight: 800;
             color: #0f172a;
-            margin: 12px 0;
+            margin: 6px 0 12px 0;
             letter-spacing: 1px;
         }
 
         .acoes-cronometro {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             width: 100%;
             justify-content: center;
         }
@@ -212,8 +207,8 @@
             background-color: #16a34a;
             color: white;
             flex: 1;
-            padding: 12px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 14px;
         }
 
         .btn-iniciar:hover {
@@ -224,8 +219,8 @@
             background-color: #f59e0b;
             color: white;
             flex: 1;
-            padding: 12px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 14px;
         }
 
         .btn-pausar:hover {
@@ -236,8 +231,8 @@
             background-color: #dc2626;
             color: white;
             flex: 1;
-            padding: 12px;
-            font-size: 16px;
+            padding: 10px;
+            font-size: 14px;
         }
 
         .btn-finalizar:hover {
@@ -246,7 +241,7 @@
     </style>
 </head>
 <body>
-    <div style="position: absolute; top: 20px; right: 20px;">
+    <div style="position: absolute; top: 15px; right: 20px;">
         <button onclick="logout()" class="btn-sair">Sair do Sistema</button>
     </div>
     <div class="cabecalho">
@@ -255,10 +250,10 @@
     </div>
 
     <!-- Container Dinâmico -->
-    <div id="mainContainer" class="main-container layout-centrado">
+    <div id="mainContainer" class="main-container layout-1-pergunta">
         
         <!-- Bloco de Perguntas -->
-        <div id="containerPerguntasColaborador" class="perguntas-centradas"></div>
+        <div id="containerPerguntasColaborador" class="perguntas-coluna"></div>
 
         <!-- Painel do Cronômetro -->
         <div class="cartao cartao-cronometro">
@@ -305,16 +300,18 @@
                 const container = document.getElementById('containerPerguntasColaborador');
                 container.innerHTML = '';
 
-                // Filtra as perguntas ativas e limita ao máximo de 4
-                const ativas = perguntas.filter(p => p.ativa !== false).slice(0, 4);
+                // Filtra as perguntas ativas e limita ao máximo de 3
+                const ativas = perguntas.filter(p => p.ativa !== false).slice(0, 3);
 
-                // Alterna o layout com base no número de perguntas
-                if (ativas.length === 4) {
-                    mainContainer.className = 'main-container layout-grid';
-                    container.className = 'perguntas-grid-4';
+                // Alterna a estrutura da tela de acordo com a quantidade
+                if (ativas.length <= 1) {
+                    // 0 ou 1 pergunta: layout centralizado em coluna única
+                    mainContainer.className = 'main-container layout-1-pergunta';
+                    container.className = 'perguntas-coluna';
                 } else {
-                    mainContainer.className = 'main-container layout-centrado';
-                    container.className = 'perguntas-centradas';
+                    // 2 ou 3 perguntas: empilhadas à esquerda, cronômetro à direita
+                    mainContainer.className = 'main-container layout-multiplas';
+                    container.className = 'perguntas-coluna';
                 }
 
                 if (ativas.length > 0) {
@@ -399,14 +396,13 @@
             return listaAtividadesCache.find(a => a._id === selectA.value);
         }
 
-        // Valida se a atividade permite pausa, cobrindo qualquer padrão de nome de atributo do backend
         function atividadeEhPausavel(atividade) {
             if (!atividade) return false;
             if (typeof atividade.permitePausa === 'boolean') return atividade.permitePausa;
             if (typeof atividade.pausavel === 'boolean') return atividade.pausavel;
             if (atividade.tipo) return atividade.tipo.toLowerCase().includes('paus');
             if (atividade.tipoAtividade) return atividade.tipoAtividade.toLowerCase().includes('paus');
-            return true; // Se não houver campo explicativo, assume pausável
+            return true;
         }
 
         function verificarPermissaoPausa() {
@@ -416,7 +412,6 @@
             if (atividadeEhPausavel(atividade)) {
                 btnPausar.style.display = 'inline-block';
                 
-                // Habilita o clique apenas se a atividade estiver rodando ou em pausa
                 const emExecucao = Boolean(timer || estaEmPausa);
                 btnPausar.disabled = !emExecucao;
                 btnPausar.style.opacity = emExecucao ? '1' : '0.5';
@@ -473,14 +468,12 @@
             const btnPausar = document.getElementById('btnPausar');
 
             if (!estaEmPausa) {
-                // Pausar
                 clearInterval(timer);
                 timer = null;
                 estaEmPausa = true;
                 btnPausar.innerText = '▶ Continuar';
                 btnPausar.style.backgroundColor = '#16a34a';
             } else {
-                // Continuar
                 timer = setInterval(() => {
                     tempoSegundos++;
                     atualizarDisplay();
@@ -526,7 +519,6 @@
 
             alert(`Atividade "${atividadeNome}" finalizada!\nTempo total: ${tempoFinal}`);
             
-            // Reseta tela
             tempoSegundos = 0;
             selectA.disabled = false;
             atualizarDisplay();
